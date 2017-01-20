@@ -1,4 +1,4 @@
-
+project(kernel)
 message(${BUILD_ARCH})
 set(COMMON_C_FLAGS "-O2 -g")
 
@@ -14,6 +14,8 @@ set(KERNEL_SRC kernel/kernel.c
                 arch/i386/crtn.asm
                 arch/i386/tty.c)
 include_directories(include)
-include_directories(${NEWLIB_ROOT_DIR}/i686-elf/include)
+include_directories(${KLIBC_INCLUDE_DIR})
 
 add_executable(kernel ${KERNEL_SRC})
+
+target_link_libraries(kernel klibc)

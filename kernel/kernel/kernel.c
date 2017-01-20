@@ -9,4 +9,5 @@ void kernel_early(void)
 void kernel_main(void)
 {
     terminal_write("Hello World",11);
+    printf("Hellp\n");
 }

@@ -2,6 +2,9 @@ project(klibc)
 message(${BUILD_ARCH})
 set(COMMON_C_FLAGS "-O2 -g")
 
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "--target=i686-pc-none-elf -march=i686 -fno-builtin -nostdlib")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "--target=i686-pc-none-elf -march=i686 -fno-builtin -nostdlib -nostdinc++")
+
 set(KERNEL_C_FLAGS "-ffreestanding -fbuiltin -Wall -Wextra -D__is_myos_kernel")
 set(KERNEL_CXX_FLAGS "-ffreestanding -fbuiltin -Wall -Wextra -D__is_myos_kernel")
 

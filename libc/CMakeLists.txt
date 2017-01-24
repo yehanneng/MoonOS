@@ -21,8 +21,16 @@ set(KLIBC_SRC stdio/printf.c
                 string/memset.c
                 string/strlen.c
                 )
+set(KLIBC_HEADERS include/stdio.h
+				include/stdlib.h
+				include/string.h
+				include/sys/cdefs.h)
 include_directories(include)
 include_directories(../kernel/include)
 
 set(KLIBC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include CACHE STRING "KLIBC INCLUDE DIR")
-add_library(klibc ${KLIBC_SRC})
+add_library(klibc ${KLIBC_SRC} ${KLIBC_HEADERS})
+
+#INSTALL RULES
+install(TARGETS klibc DESTINATION lib)
+install(FILES ${KLIBC_HEADERS} DESTINATION include)

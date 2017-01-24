@@ -21,9 +21,15 @@ set(KERNEL_SRC kernel/kernel.c
                 arch/i386/crti.asm
                 arch/i386/crtn.asm
                 arch/i386/tty.c)
+set(KERNEL_HEADERS include/kernel/tty.h
+				include/kernel/vga.h)
 include_directories(include)
 include_directories(${KLIBC_INCLUDE_DIR})
 
-add_executable(kernel ${KERNEL_SRC})
+add_executable(kernel ${KERNEL_SRC} ${KERNEL_HEADERS})
 
 target_link_libraries(kernel klibc)
+
+#install rules
+install(TARGETS kernel DESTINATION boot)
+install(FILES ${KERNEL_HEADERS} DESTINATION include/kernel)

@@ -23,14 +23,15 @@ set(KLIBC_SRC stdio/printf.c
                 )
 set(KLIBC_HEADERS include/stdio.h
 				include/stdlib.h
-				include/string.h
-				include/sys/cdefs.h)
+				include/string.h)
+set(KLIBC_SYS_HEADERS include/sys/cdefs.h)
 include_directories(include)
 include_directories(../kernel/include)
 
 set(KLIBC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include CACHE STRING "KLIBC INCLUDE DIR")
-add_library(klibc ${KLIBC_SRC} ${KLIBC_HEADERS})
+add_library(klibc ${KLIBC_SRC} ${KLIBC_HEADERS} ${KLIBC_SYS_HEADERS})
 
 #INSTALL RULES
 install(TARGETS klibc DESTINATION lib)
 install(FILES ${KLIBC_HEADERS} DESTINATION include)
+install(FILES ${KLIBC_SYS_HEADERS} DESTINATION include/sys)

@@ -19,9 +19,11 @@ set(CMAKE_CXX_LINK_EXECUTABLE ${LINK_FLAGS})
 set(KERNEL_SRC kernel/kernel.c
                 kernel/main.c
                 kernel/memory.c
+                kernel/gdt.c
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm
+                arch/i386/internal.asm
                 arch/i386/tty.c
                 liballoc/liballoc.c
                 liballoc/moonos.c
@@ -30,6 +32,7 @@ set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/vga.h
 				include/kernel/memory.h
                 include/kernel/page.h
+                include/kernel/gdt.h
                 liballoc/liballoc.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)

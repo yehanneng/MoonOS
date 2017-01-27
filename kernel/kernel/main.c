@@ -1,4 +1,4 @@
-
+#include <kernel/kernel.h>
 #include <kernel/tty.h>
 #include <grub/multiboot.h>
 #include <kernel/memory.h>
@@ -9,14 +9,13 @@
 void kernel_early(multiboot_info_t* bootInfo)
 {
     terminal_initialize();
-
+    // load memory info
     parse_memory_info(bootInfo);
+    // setup system gdt
+    kernel_init_gdt();
 }
 
 void kernel_main(void)
 {
     printf("Hello Kernel world!!\n");
-    void* addr = kmalloc(10);
-    void* addr2 = kmalloc(20);
-    printf("addr of malloc = %x\n | addr2 = %x", addr, addr2);
 }

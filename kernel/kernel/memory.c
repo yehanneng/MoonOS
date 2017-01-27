@@ -38,11 +38,12 @@ void parse_memory_info(multiboot_info_t* memoryInfo)
     _format_meminfo();
 
     /** for debug **/
-
+    /*
     for(int i = 0; i < _meminfo.frees; i++)
     {
         printf("freeInfo.addr = %x | freeInfo.size = %x \n", _meminfo.free[i].addr, _meminfo.free[i].size);
     }
+    */
 
 }
 
@@ -234,10 +235,10 @@ int mempry_free_4k(uint32_t addr, uint32_t size)
 
 void* kalloc_page(int pages)
 {
-    return memory_alloc_4k(pages * PAGE_SIZE);
+    return (void*)memory_alloc_4k(pages * PAGE_SIZE);
 }
 
 int kfree_page(void* ptr, int pages)
 {
-    return mempry_free_4k(ptr, pages * PAGE_SIZE);
+    return mempry_free_4k((uint32_t)ptr, pages * PAGE_SIZE);
 }

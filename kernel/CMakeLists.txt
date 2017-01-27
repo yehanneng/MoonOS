@@ -22,10 +22,15 @@ set(KERNEL_SRC kernel/kernel.c
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm
-                arch/i386/tty.c)
+                arch/i386/tty.c
+                liballoc/liballoc.c
+                liballoc/moonos.c
+                )
 set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/vga.h
 				include/kernel/memory.h
+                include/kernel/page.h
+                liballoc/liballoc.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)
 include_directories(include)

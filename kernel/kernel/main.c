@@ -16,4 +16,7 @@ void kernel_early(multiboot_info_t* bootInfo)
 void kernel_main(void)
 {
     printf("Hello Kernel world!!\n");
+    void* addr = kmalloc(10);
+    void* addr2 = kmalloc(20);
+    printf("addr of malloc = %x\n | addr2 = %x", addr, addr2);
 }

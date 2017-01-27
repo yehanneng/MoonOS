@@ -26,6 +26,7 @@ set(KLIBC_HEADERS include/stdio.h
 				include/string.h)
 set(KLIBC_SYS_HEADERS include/sys/cdefs.h)
 include_directories(include)
+include_directories(liballoc)
 include_directories(../kernel/include)
 
 set(KLIBC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include CACHE STRING "KLIBC INCLUDE DIR")

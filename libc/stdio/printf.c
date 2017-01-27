@@ -9,6 +9,17 @@ static void print(const char* data, size_t data_length)
 		putchar((int) ((const unsigned char*) data)[i]);
 }
 
+static char* i2a(unsigned int value,int base,char** ps)
+{
+	int low = value % base;
+	int height = value / base;
+	if (height > 0) {
+		i2a(height,base,ps);
+	}
+	*(*ps)++ = (low < 10) ?(low + '0'):((low - 10) + 'A');
+	return *ps;
+}
+
 int printf(const char* restrict format, ...)
 {
 	va_list parameters;
@@ -56,6 +67,25 @@ int printf(const char* restrict format, ...)
 			format++;
 			const char* s = va_arg(parameters, const char*);
 			print(s, strlen(s));
+		}
+		else if( *format == 'd' || *format == 'i'){
+			format++;
+			int value = (int)va_arg(parameters,int);
+			char buf[32];
+			memset(buf,0,32);
+			char* p = buf;
+			i2a(value,10,&p);
+			print(buf,strlen(buf));
+		}else if( *format == 'x'){
+			format++;
+			int value = (int)va_arg(parameters,int);
+			char buf[32];
+			memset(buf,0,32);
+			buf[0] = '0';
+			buf[1] = 'x';
+			char* p = buf + 2;
+			i2a(value,16,&p);
+			print(buf,strlen(buf));
 		}
 		else
 		{

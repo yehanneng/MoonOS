@@ -34,7 +34,29 @@ void terminal_putentryat(char c,unsigned char color,unsigned int x,unsigned int 
 
 void terminal_putchar(char c)
 {
-    terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
+    if (c == '\r') {
+        /* code */
+        terminal_column = -1;
+    }
+    else if (c == '\n') {
+        /* code enter */
+        terminal_row++;
+        terminal_column = -1;
+    }
+	else if (c == '\b') {
+		terminal_column--;
+		if (terminal_column < 0) {
+			terminal_column = VGA_WIDTH - 1;
+			terminal_row--;
+		}
+		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+		// move_cursor(terminal_row, terminal_column);
+		return;
+	}
+	else{
+        terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
+    }
+
     if (++terminal_column == VGA_WIDTH) {
         terminal_column = 0;
         if (++terminal_row == VGA_HEIGHT) {

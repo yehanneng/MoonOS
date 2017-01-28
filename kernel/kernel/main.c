@@ -18,6 +18,8 @@ void kernel_early(multiboot_info_t* bootInfo)
     kernel_init_gdt();
     // setup page table
     kernel_setup_page(totalMemory);
+    // setup system idt
+    kernel_init_idt();
 }
 
 void kernel_main(void)

@@ -20,11 +20,13 @@ set(KERNEL_SRC kernel/kernel.c
                 kernel/main.c
                 kernel/memory.c
                 kernel/gdt.c
+                kernel/idt.c
                 kernel/page.c
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm
                 arch/i386/internal.asm
+                arch/i386/interrupt.asm
                 arch/i386/tty.c
                 liballoc/liballoc.c
                 liballoc/moonos.c
@@ -34,6 +36,8 @@ set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/memory.h
                 include/kernel/page.h
                 include/kernel/gdt.h
+                include/kernel/kernel.h
+                include/kernel/idt.h
                 liballoc/liballoc.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)

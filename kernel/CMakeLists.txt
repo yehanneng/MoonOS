@@ -20,6 +20,7 @@ set(KERNEL_SRC kernel/kernel.c
                 kernel/main.c
                 kernel/memory.c
                 kernel/gdt.c
+                kernel/page.c
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm

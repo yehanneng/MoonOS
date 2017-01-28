@@ -19,7 +19,7 @@ typedef struct _memoryinfo{
 
 
 /* inplement in memory.c */
-void parse_memory_info(multiboot_info_t* mbf);
+uint32_t parse_memory_info(multiboot_info_t* mbf);
 unsigned int memory_alloc_4k(unsigned int size);
 int mempry_free_4k(unsigned int addr, unsigned int size);
 

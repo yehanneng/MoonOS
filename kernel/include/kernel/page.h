@@ -8,4 +8,7 @@
 #define PAGE_SIZE 0x1000  //size per page
 
 
+/********** functions ************/
+void kernel_setup_page(unsigned int totalMemory);
+
 #endif /* page_h */

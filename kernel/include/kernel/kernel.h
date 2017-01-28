@@ -4,7 +4,7 @@
 
 /************* asm function*****************/
 void set_gdt(const char* gdtr);
-
+void set_cr3(unsigned int page_derectory_addr);
 /******* kernel.c ********/
 void kernel_init_gdt();
 

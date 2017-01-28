@@ -13,9 +13,9 @@ MEMINFO _meminfo =
 };
 
 static int _memory_free(uint32_t addr, uint32_t size);
-static void _format_meminfo();
+static void _format_meminfo(uint32_t totalMemory);
 
-void parse_memory_info(multiboot_info_t* memoryInfo)
+uint32_t parse_memory_info(multiboot_info_t* memoryInfo)
 {
     uint32_t total_memory = 0; //byte
     uint32_t memory_slots = memoryInfo->mmap_length / sizeof(multiboot_memory_map_t);
@@ -35,7 +35,7 @@ void parse_memory_info(multiboot_info_t* memoryInfo)
         pre = mmap;
     }
 
-    _format_meminfo();
+    _format_meminfo(total_memory);
 
     /** for debug **/
     /*
@@ -45,6 +45,7 @@ void parse_memory_info(multiboot_info_t* memoryInfo)
     }
     */
 
+    return total_memory;
 }
 
 static int _memory_free(uint32_t addr, uint32_t size)
@@ -115,13 +116,16 @@ static int _memory_free(uint32_t addr, uint32_t size)
     return -1;
 }
 
-static void _format_meminfo()
+static void _format_meminfo(uint32_t totalMemory)
 {
     // mark video memory in memory info
     FREEINFO* info = &_meminfo.free[0];
     info->size = (0xB8000 - info->addr);
 
-
+    info++;
+    uint32_t preAddr = info->addr;
+    info->addr = 0x200000 + 0x1000 + totalMemory / 1024;
+    info->size -= (info->addr - preAddr);
     memory_alloc_4k(0x1000);
 }
 

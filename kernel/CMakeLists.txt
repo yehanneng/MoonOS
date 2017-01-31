@@ -38,6 +38,7 @@ set(KERNEL_HEADERS include/kernel/tty.h
                 include/kernel/gdt.h
                 include/kernel/kernel.h
                 include/kernel/idt.h
+                include/kernel/proc.h
                 liballoc/liballoc.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)

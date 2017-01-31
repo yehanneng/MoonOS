@@ -41,8 +41,6 @@ typedef struct _descroptor DESCRIPTOR;
 #define	SELECTOR_KERNEL_DS	SELECTOR_FLAT_RW
 #define	SELECTOR_KERNEL_GS	SELECTOR_VIDEO
 
-/* 每个任务有一个单独的 LDT, 每个 LDT 中的描述符个数: */
-#define LDT_SIZE		2
 /* descriptor indices in LDT */
 #define INDEX_LDT_C             0
 #define INDEX_LDT_RW            1

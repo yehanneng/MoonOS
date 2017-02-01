@@ -22,6 +22,7 @@ set(KERNEL_SRC kernel/kernel.c
                 kernel/gdt.c
                 kernel/idt.c
                 kernel/page.c
+                kernel/interrupt/interrupt.cpp
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm
@@ -42,10 +43,12 @@ set(KERNEL_HEADERS include/kernel/tty.h
                 liballoc/liballoc.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)
+set(KERNEL_INTERRUPT_INCLUDE include/kernel/interrupt/interrupt.h)
 include_directories(include)
 include_directories(${KLIBC_INCLUDE_DIR})
 
-add_executable(kernel ${KERNEL_SRC} ${KERNEL_HEADERS} ${GRUB_INCLUDE})
+add_executable(kernel ${KERNEL_SRC} ${KERNEL_HEADERS}
+                        ${GRUB_INCLUDE} ${KERNEL_INTERRUPT_INCLUDE})
 
 target_link_libraries(kernel klibc)
 

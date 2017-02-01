@@ -9,6 +9,7 @@ dd MULTIBOOT_HEADER_MAGIC
 dd MULTIBOOT_HEADER_FLAGS
 dd CHECKSUM
 
+global stack_top
 [section .bootstrap_stack]
 stack_bottom:
 times 16384 db 0

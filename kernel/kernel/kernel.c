@@ -4,9 +4,12 @@
 #include <kernel/proc.h>
 #include <stdio.h>
 
-
+/* some global variable */
 DESCRIPTOR* kgdt = 0;
 GATE* kidt = 0;
+TSS* tss = 0;
+int k_reenter = 0;
+PROCESS* p_proc_ready = 0;
 
 void kernel_init_gdt()
 {
@@ -16,7 +19,7 @@ void kernel_init_gdt()
     init_desc(&kgdt[1], 0, 0xfffff, DA_CR |DA_32 | DA_LIMIT_4K);
     init_desc(&kgdt[2], 0, 0xfffff, DA_DRW|DA_32 | DA_LIMIT_4K);
     init_desc(&kgdt[3], 0xB8000, 0xffff, DA_DRW | DA_DPL3);
-    TSS* tss = (TSS*)kmalloc(sizeof(TSS));
+    tss = (TSS*)kmalloc(sizeof(TSS));
     tss->ss0 = SELECTOR_KERNEL_DS;
     tss->iobase = sizeof(TSS);
     

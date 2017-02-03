@@ -28,6 +28,7 @@ extern "C" {
 
 
 void spurious_irq(int irq);
+void init_irq_table();
 
 #ifdef __cplusplus
 }

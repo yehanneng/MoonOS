@@ -179,3 +179,55 @@ restart_reenter:
     popad
     add esp,4
     iretd
+
+%macro hwint_master 1
+    call save
+    in al,INT_M_CTLMASK
+    or al,(1 << %1)
+    out INT_M_CTLMASK,al
+    mov al,EOI
+    out INT_M_CTL,al
+    sti
+    push %1
+    call spurious_irq
+    add esp,4
+    cli
+    in al,INT_M_CTLMASK
+    and al,~(1 << %1)
+    out INT_M_CTLMASK,al
+    ret
+%endmacro
+
+extern spurious_irq
+
+ALIGN	16
+hwint00:		; Interrupt routine for irq 0 (the clock).
+    hwint_master	0
+
+ALIGN	16
+hwint01:		; Interrupt routine for irq 1 (keyboard)
+    hwint_master	1
+
+ALIGN	16
+hwint02:		; Interrupt routine for irq 2 (cascade!)
+    hwint_master	2
+
+ALIGN	16
+hwint03:		; Interrupt routine for irq 3 (second serial)
+    hwint_master	3
+
+ALIGN	16
+hwint04:		; Interrupt routine for irq 4 (first serial)
+    hwint_master	4
+
+ALIGN	16
+hwint05:		; Interrupt routine for irq 5 (XT winchester)
+    hwint_master	5
+
+ALIGN	16
+hwint06:		; Interrupt routine for irq 6 (floppy)
+    hwint_master	6
+
+ALIGN	16
+hwint07:		; Interrupt routine for irq 7 (printer)
+    hwint_master	7

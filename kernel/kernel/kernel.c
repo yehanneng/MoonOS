@@ -3,6 +3,7 @@
 #include <kernel/idt.h>
 #include <kernel/proc.h>
 #include <stdio.h>
+#include <kernel/interrupt/interrupt.h>
 
 /* some global variable */
 DESCRIPTOR* kgdt = 0;
@@ -10,6 +11,10 @@ GATE* kidt = 0;
 TSS* tss = 0;
 int k_reenter = 0;
 PROCESS* p_proc_ready = 0;
+
+PROCESS proc_table[1];
+
+
 
 void kernel_init_gdt()
 {
@@ -92,30 +97,30 @@ void kernel_init_idt()
     init_idt_desc(&kidt[INT_VECTOR_COPROC_ERR],	DA_386IGate,
                   copr_error,		PRIVILEGE_KRNL);
 
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 0],      DA_386IGate,
-    //               hwint00,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 1],      DA_386IGate,
-    //               hwint01,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 2],      DA_386IGate,
-    //               hwint02,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 3],      DA_386IGate,
-    //               hwint03,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 4],      DA_386IGate,
-    //               hwint04,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 5],      DA_386IGate,
-    //               hwint05,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 6],      DA_386IGate,
-    //               hwint06,                  PRIVILEGE_KRNL);
-    //
-    // init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 7],      DA_386IGate,
-    //               hwint07,                  PRIVILEGE_KRNL);
-    //
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 0],      DA_386IGate,
+                  hwint00,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 1],      DA_386IGate,
+                  hwint01,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 2],      DA_386IGate,
+                  hwint02,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 3],      DA_386IGate,
+                  hwint03,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 4],      DA_386IGate,
+                  hwint04,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 5],      DA_386IGate,
+                  hwint05,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 6],      DA_386IGate,
+                  hwint06,                  PRIVILEGE_KRNL);
+
+    init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 7],      DA_386IGate,
+                  hwint07,                  PRIVILEGE_KRNL);
+
 	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 8], DA_386IGate,
 	// 	hwint08, PRIVILEGE_KRNL);
     //
@@ -141,6 +146,8 @@ void kernel_init_idt()
 	// 	hwint15, PRIVILEGE_KRNL);
 
     // init_idt_desc(&kidt[INT_VECTOR_SYS_CALL], DA_386IGate, sys_call, PRIVILEGE_USER);
+
+    init_irq_table();
 
     char kidtr[6];
 

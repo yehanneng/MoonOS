@@ -23,6 +23,8 @@ set(KERNEL_SRC kernel/kernel.c
                 kernel/idt.c
                 kernel/page.c
                 kernel/interrupt/interrupt.cpp
+                kernel/interrupt/clockinterrupt.h
+                kernel/interrupt/clockinterrupt.cpp
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm

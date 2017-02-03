@@ -1,5 +1,9 @@
 #include <kernel/interrupt/interrupt.h>
+#include <kernel/idt.h>
 #include <liballoc.h>
+#include <stdio.h>
+
+#include "clockinterrupt.h"
 
 AbstractInterruptHandler::AbstractInterruptHandler(uint8_t vector)
 {
@@ -20,6 +24,13 @@ extern "C" void spurious_irq(int irq)
     }
 }
 
+ClockInterruptHandler _clocker;
+extern "C" void init_irq_table()
+{
+    irq_table[CLOCK_IRQ] = &_clocker;
+}
+
+/**** cxx abi functions ****/
 extern "C" void __cxa_pure_virtual()
 {
 

@@ -45,7 +45,7 @@ void terminal_putchar(char c)
     }
 	else if (c == '\b') {
 		terminal_column--;
-		if (terminal_column < 0) {
+		if (terminal_column <= 0) {
 			terminal_column = VGA_WIDTH - 1;
 			terminal_row--;
 		}

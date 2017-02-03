@@ -83,7 +83,7 @@ typedef void(*int_handler)();
 
 /************* functions*****************/
 void init_idt_desc(GATE* p_gate, uint8_t desc_type, int_handler handler, unsigned char privilege);
-void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
+void exception_handler(int vec_no, unsigned int err_code, int eip, int cs, int eflags);
 
 void init_8259A();
 /* 中断处理函数 */

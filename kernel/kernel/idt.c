@@ -2,9 +2,8 @@
 #include <kernel/kernel.h>
 #include <stdio.h>
 
-void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
+void exception_handler(int vec_no, unsigned int err_code, int eip, int cs, int eflags)
 {
-    int i;
     // int text_color = 0x74; /* 灰底红字 */
     char err_description[][64] = {	"#DE Divide Error",
         "#DB RESERVED",

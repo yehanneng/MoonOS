@@ -3,7 +3,7 @@ message(${BUILD_ARCH})
 set(COMMON_C_FLAGS "-O2 -g")
 
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "--target=i686-pc-none-elf -march=i686 -fno-builtin -nostdlib")
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "--target=i686-pc-none-elf -march=i686 -fno-builtin -nostdlib -nostdinc++ -std=c++11")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "--target=i686-pc-none-elf -march=i686 -fno-builtin -nostdlib -nostdinc++ -std=c++11 -fno-rtti -fno-exceptions")
 
 
 set(KERNEL_C_FLAGS "-ffreestanding -fbuiltin -Wall -Wextra")
@@ -45,6 +45,7 @@ set(KERNEL_HEADERS include/kernel/tty.h
 set(GRUB_INCLUDE include/grub/multiboot.h)
 set(KERNEL_INTERRUPT_INCLUDE include/kernel/interrupt/interrupt.h)
 include_directories(include)
+include_directories(liballoc)
 include_directories(${KLIBC_INCLUDE_DIR})
 
 add_executable(kernel ${KERNEL_SRC} ${KERNEL_HEADERS}

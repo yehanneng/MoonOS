@@ -22,8 +22,8 @@ void kernel_init_gdt()
     tss = (TSS*)kmalloc(sizeof(TSS));
     tss->ss0 = SELECTOR_KERNEL_DS;
     tss->iobase = sizeof(TSS);
-    
-    init_desc(&kgdt[INDEX_TSS], tss, sizeof(TSS) - 1, DA_386TSS);
+
+    init_desc(&kgdt[INDEX_TSS], (uint32_t)tss, sizeof(TSS) - 1, DA_386TSS);
 
     char gdt_ptr[6];
     uint16_t* p_gdt_limit = (uint16_t*)(&gdt_ptr[0]);
@@ -33,7 +33,7 @@ void kernel_init_gdt()
     *p_gdt_base = (uint32_t)kgdt;
 
     set_gdt(gdt_ptr);
-    
+
     load_tss(SELECTOR_TSS);
 
 }

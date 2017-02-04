@@ -8,7 +8,7 @@ class ClockInterruptHandler: public AbstractInterruptHandler
 public:
     ClockInterruptHandler();
     virtual ~ClockInterruptHandler();
-    void handle_irq() override;
+    virtual void handle_irq() override;
 private:
     unsigned int _tick;
 };

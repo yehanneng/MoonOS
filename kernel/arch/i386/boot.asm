@@ -22,6 +22,7 @@ _start:
     mov esp,stack_top
     push ebx
     call kernel_early
+    add esp,4
     call _init
 
     call kernel_main

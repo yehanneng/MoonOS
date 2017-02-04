@@ -3,6 +3,8 @@
 #include <kernel/idt.h>
 #include <stdio.h>
 
+extern int k_reenter;
+
 ClockInterruptHandler::ClockInterruptHandler()
 :AbstractInterruptHandler(CLOCK_IRQ),_tick(0)
 {
@@ -19,5 +21,7 @@ ClockInterruptHandler::~ClockInterruptHandler()
 void ClockInterruptHandler::handle_irq()
 {
     _tick++;
-    printf("clock handler");
+    if (k_reenter != 0) {
+        return;
+    }
 }

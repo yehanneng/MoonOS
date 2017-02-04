@@ -33,6 +33,8 @@ set(KERNEL_SRC kernel/kernel.c
                 arch/i386/tty.c
                 liballoc/liballoc.c
                 liballoc/moonos.c
+                arch/icxxabi.h
+                arch/icxxabi.cpp
                 )
 set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/vga.h

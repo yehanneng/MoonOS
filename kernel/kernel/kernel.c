@@ -25,6 +25,7 @@ void kernel_init_gdt()
     init_desc(&kgdt[2], 0, 0xfffff, DA_DRW|DA_32 | DA_LIMIT_4K);
     init_desc(&kgdt[3], 0xB8000, 0xffff, DA_DRW | DA_DPL3);
     tss = (TSS*)kmalloc(sizeof(TSS));
+    memset(tss,0, sizeof(TSS));
     tss->ss0 = SELECTOR_KERNEL_DS;
     tss->iobase = sizeof(TSS);
 
@@ -158,4 +159,49 @@ void kernel_init_idt()
     *p_idt_base = (uint32_t)kidt;
 
     load_idt(kidtr);
+}
+
+void TestA()
+{
+    uint32_t selfTick = 0;
+    while(1){
+        printf("a");
+    }
+}
+
+void kernel_init_internal_process()
+{
+    PROCESS* p = proc_table;
+    memset(p,0, sizeof(PROCESS));
+    p->ldt_sel = SELECTOR_LDT_FIRST;
+
+    memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
+    p->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;
+
+    memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
+    p->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;
+
+    p->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.gs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    //p->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_USER;
+
+    p->regs.eip = (uint32_t)TestA;
+    p->regs.esp = 0x8000000;
+    p->regs.eflags = 0x1202;
+
+    //p->_tty.count = 0;
+    //p->_tty._p_head = p->_tty._p_tail = p->_tty._buff;
+
+    //p->ticks = p->priority = 100;
+
+    /* init gdt descriptor*/
+    init_desc(&kgdt[INDEX_LDT_FIRST], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
+
+    p_proc_ready = p;
+
+    printf("p_proc_ready = %x\n", p_proc_ready);
 }

@@ -168,7 +168,8 @@ restart:
     mov	esp, [p_proc_ready]
     lldt	[esp + P_LDT_SEL]
     lea	eax, [esp + P_STACKTOP]
-    mov	dword [tss + TSS3_S_SP0], eax
+    mov ebx, [tss]
+    mov	dword [ebx + TSS3_S_SP0], eax
 
 restart_reenter:
     dec dword[k_reenter]
@@ -190,7 +191,7 @@ restart_reenter:
     sti
     push %1
     call spurious_irq
-    add esp,4
+    pop ecx
     cli
     in al,INT_M_CTLMASK
     and al,~(1 << %1)

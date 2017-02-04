@@ -20,9 +20,15 @@ void kernel_early(multiboot_info_t* bootInfo)
     kernel_setup_page(totalMemory);
     // setup system idt
     kernel_init_idt();
+    // init server process
+    kernel_init_internal_process();
 }
 
 void kernel_main(void)
 {
     printf("Hello Kernel world!!\n");
+
+    //asm("sti");
+    restart();
+    while(1){}
 }

@@ -17,23 +17,23 @@ AbstractInterruptHandler::~AbstractInterruptHandler()
 
 AbstractInterruptHandler* irq_table[NR_IRQ];
 
-extern "C" void spurious_irq(int irq)
+// ClockInterruptHandler* _clocker = new ClockInterruptHandler();
+void cxx_irq_router(int irq)
 {
     if(irq < NR_IRQ){
-        irq_table[irq]->handle_irq();
+        AbstractInterruptHandler* p = irq_table[irq];
+        p->handle_irq();
     }
 }
 
-ClockInterruptHandler _clocker;
-extern "C" void init_irq_table()
+extern "C" void spurious_irq(int irq)
 {
-    irq_table[CLOCK_IRQ] = &_clocker;
+    cxx_irq_router(irq);
 }
 
-/**** cxx abi functions ****/
-extern "C" void __cxa_pure_virtual()
+extern "C" void init_irq_table()
 {
-
+    irq_table[CLOCK_IRQ] = new ClockInterruptHandler();
 }
 
 void operator delete(void * p) // or delete(void *, std::size_t)
@@ -54,16 +54,4 @@ void* operator new(size_t size)
 void* operator new[](size_t size)
 {
     return kmalloc(size);
-}
-
-extern "C" int __cxa_atexit(void (*destructor) (void *), void *arg, void *dso)
-{
-    arg;
-    dso;
-    return 0;
-}
-
-extern "C" void __cxa_finalize(void *f)
-{
-    f;
 }

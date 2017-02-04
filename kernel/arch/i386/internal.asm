@@ -72,6 +72,7 @@ load_idt:
 
 global load_tss ;load_tss(int tss_select)
 load_tss:
+    xor eax,eax
     mov eax,[esp+4]
     ltr ax
     nop

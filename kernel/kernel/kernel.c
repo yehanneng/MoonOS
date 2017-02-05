@@ -9,10 +9,10 @@
 DESCRIPTOR* kgdt = 0;
 GATE* kidt = 0;
 TSS* tss = 0;
-int k_reenter = 0;
+int k_reenter = -1;
 PROCESS* p_proc_ready = 0;
 
-PROCESS proc_table[1];
+PROCESS proc_table[NR_TASKS];
 
 
 
@@ -161,17 +161,60 @@ void kernel_init_idt()
     load_idt(kidtr);
 }
 
+void kernel_schedule_process()
+{
+    p_proc_ready->ticks--;
+    if(k_reenter != 0) { // interrupt reenter
+        return;
+    }
+    PROCESS* p;
+    int greates_ticks = 0;
+
+    while (!greates_ticks) {
+        for (p = proc_table; p < proc_table + NR_TASKS + NR_PROCS; p++) {
+            if (p->p_flags == 0) {
+                if (p->ticks > greates_ticks) {
+                    greates_ticks = p->ticks;
+                    p_proc_ready = p;
+                }
+            }
+        }
+
+        if (!greates_ticks) {
+            for (p = proc_table; p < proc_table + NR_TASKS + NR_PROCS; p++) {
+                if (p->p_flags == 0)
+                    p->ticks = p->priority;
+            }
+        }
+    }
+}
+
+/****** only for debug ******/
 void TestA()
 {
-    uint32_t selfTick = 0;
+    int times = 0;
     while(1){
-        printf("a");
+        if(times < 100){
+            printf("a");
+            times++;
+        }
+    }
+}
+
+void TestB()
+{
+    int times = 0;
+    while(1){
+        if(times < 100){
+            printf("b");
+            times++;
+        }
     }
 }
 
 void kernel_init_internal_process()
 {
-    PROCESS* p = proc_table;
+    PROCESS* p = &proc_table[0];
     memset(p,0, sizeof(PROCESS));
     p->ldt_sel = SELECTOR_LDT_FIRST;
 
@@ -190,18 +233,37 @@ void kernel_init_internal_process()
     //p->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_USER;
 
     p->regs.eip = (uint32_t)TestA;
-    p->regs.esp = 0x8000000;
+    p->regs.esp = 0x8000;
     p->regs.eflags = 0x1202;
-
-    //p->_tty.count = 0;
-    //p->_tty._p_head = p->_tty._p_tail = p->_tty._buff;
-
-    //p->ticks = p->priority = 100;
+    p->ticks = p->priority = 3;
 
     /* init gdt descriptor*/
     init_desc(&kgdt[INDEX_LDT_FIRST], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
 
-    p_proc_ready = p;
+    p++;
+    memset(p,0, sizeof(PROCESS));
+    p->ldt_sel = SELECTOR_LDT_FIRST + 8;
 
-    printf("p_proc_ready = %x\n", p_proc_ready);
+    memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
+    p->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;
+
+    memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
+    p->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;
+
+    p->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    p->regs.gs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+    //p->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_USER;
+
+    p->regs.eip = (uint32_t)TestB;
+    p->regs.esp = 0x9000;
+    p->regs.eflags = 0x1202;
+    p->ticks = p->priority = 2;
+
+    init_desc(&kgdt[INDEX_LDT_FIRST + 1], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
+
+    p_proc_ready = p;
 }

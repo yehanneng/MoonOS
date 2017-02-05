@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <kernel/gdt.h>
 
-#define NR_TASKS 4
+#define NR_TASKS 2
 #define NR_PROCS 0
 
 #define TASK_STACK_SIZE 0x8000
@@ -42,8 +42,6 @@ typedef struct _s_stackframe P_FRAME;
 
 #define TTY_IN_BYTES 32
 
-
-
 typedef struct{
     uint32_t _buff[TTY_IN_BYTES];
     uint32_t* _p_head;
@@ -57,6 +55,15 @@ typedef struct {
     uint32_t v_mem_limit;
     uint32_t cursor_pos;
 }CONSOLE;
+
+#define INPUT_BUFFER_LENGTH 32
+// keyboard input buffer
+typedef struct {
+    uint32_t _buff[INPUT_BUFFER_LENGTH];
+    uint32_t* _p_head;
+    uint32_t* _p_tail;
+    uint32_t count;
+} INPUT_BUFFER;
 
 struct _message;
 
@@ -84,8 +91,7 @@ struct _s_proc{
 							   * queue (q_sending)
 							   */
     char p_name[16];
-    TTY _tty;
-    CONSOLE* _console;
+    INPUT_BUFFER _input_buffer;
 
 };
 

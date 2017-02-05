@@ -24,11 +24,17 @@ void kernel_early(multiboot_info_t* bootInfo)
     kernel_init_internal_process();
 }
 
+/**
+* entry point of kernel
+*/
 void kernel_main(void)
 {
-    printf("Hello Kernel world!!\n");
-
-    //asm("sti");
-    restart();
-    while(1){}
+    /**
+    * open soft interrupt and clock interrupt while call
+    * process schedule
+    */
+    asm("sti");
+    while(1){
+        // while never reacher here
+    }
 }

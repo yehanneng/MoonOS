@@ -2,6 +2,10 @@
 #define MOONOS_KERNEL_H
 #include <kernel/gdt.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************* asm function*****************/
 void restart();
 
@@ -13,6 +17,11 @@ void load_tss(unsigned int tss_selector);
 /******* kernel.c ********/
 void kernel_init_gdt();
 void kernel_init_idt();
+void kernel_schedule_process();
 void kernel_init_internal_process();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MOONOS_KERNEL_H

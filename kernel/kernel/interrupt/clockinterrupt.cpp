@@ -1,9 +1,8 @@
 #include "clockinterrupt.h"
 
 #include <kernel/idt.h>
+#include <kernel/kernel.h>
 #include <stdio.h>
-
-extern int k_reenter;
 
 ClockInterruptHandler::ClockInterruptHandler()
 :AbstractInterruptHandler(CLOCK_IRQ),_tick(0)
@@ -21,7 +20,5 @@ ClockInterruptHandler::~ClockInterruptHandler()
 void ClockInterruptHandler::handle_irq()
 {
     _tick++;
-    if (k_reenter != 0) {
-        return;
-    }
+    kernel_schedule_process();
 }

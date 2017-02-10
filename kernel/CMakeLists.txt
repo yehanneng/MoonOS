@@ -1,5 +1,4 @@
 project(kernel)
-message(${BUILD_ARCH})
 set(COMMON_C_FLAGS "-O2 -g")
 
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "--target=i686-pc-none-elf -march=i686 -fno-builtin -nostdlib")

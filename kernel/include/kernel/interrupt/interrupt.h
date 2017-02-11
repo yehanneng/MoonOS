@@ -1,10 +1,9 @@
 #ifndef MOONOS_INTERRUPT_H
 #define MOONOS_INTERRUPT_H
+
 #include <stdint.h>
-
-#ifdef __cplusplus
-
 #define NR_IRQ 16
+#ifdef __cplusplus
 
 class AbstractInterruptHandler{
 public:

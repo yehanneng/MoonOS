@@ -265,5 +265,5 @@ void kernel_init_internal_process()
 
     init_desc(&kgdt[INDEX_LDT_FIRST + 1], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
 
-    p_proc_ready = p;
+    p_proc_ready = proc_table;
 }

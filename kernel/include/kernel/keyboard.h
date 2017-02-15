@@ -224,6 +224,7 @@ public:
 	KeyboardInterruptHandler();
 	~KeyboardInterruptHandler();
 	virtual void handle_irq(void) override;
+	uint8_t keyboard_read();
 private:
 	KB_BUFF _buffer;
 	bool code_with_E0;
@@ -237,9 +238,8 @@ private:
 	bool num_lock;
 	bool scroll_lock;
 	uint32_t colnum;
-
 private:
-	uint8_t _get_byte_from_buffer();
+	uint8_t get_byte_from_buffer();
 };
 
 #endif

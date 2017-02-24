@@ -16,6 +16,8 @@ protected:
 
 };
 
+AbstractInterruptHandler* get_irq_handler(uint8_t vector);
+
 #endif
 
 

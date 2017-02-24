@@ -7,8 +7,9 @@
 #include <kernel/keyboard.h>
 
 AbstractInterruptHandler::AbstractInterruptHandler(uint8_t vector)
+:self_vector(vector)
 {
-    this->self_vector = vector;
+
 }
 
 AbstractInterruptHandler::~AbstractInterruptHandler()
@@ -24,6 +25,15 @@ void cxx_irq_router(int irq)
     if(irq < NR_IRQ){
         AbstractInterruptHandler* p = irq_table[irq];
         p->handle_irq();
+    }
+}
+
+AbstractInterruptHandler* get_irq_handler(uint8_t vector)
+{
+    if (vector < NR_IRQ) {
+        return irq_table[vector];
+    } else {
+        return NULL;
     }
 }
 

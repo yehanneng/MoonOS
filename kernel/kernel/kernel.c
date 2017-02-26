@@ -4,6 +4,7 @@
 #include <kernel/proc.h>
 #include <stdio.h>
 #include <kernel/interrupt/interrupt.h>
+#include <kernel/memory.h>
 #include <liballoc.h>
 #include <string.h>
 
@@ -19,6 +20,13 @@ PROCESS* focus_proc = NULL;
 
 PROCESS proc_table[NR_TASKS];
 
+// for debug
+void TestA();
+
+TASK_T task_table[NR_TASKS] = {
+        {input_task_main, TASK_STACK_SIZE,"InputTask",10},
+        {TestA, TASK_STACK_SIZE, "TestA",20}
+};
 
 
 void kernel_init_gdt()
@@ -219,59 +227,40 @@ void TestB()
 
 void kernel_init_internal_process()
 {
-    PROCESS* p = &proc_table[0];
-    memset(p,0, sizeof(PROCESS));
-    p->ldt_sel = SELECTOR_LDT_FIRST;
+    uint16_t ldt_selector = SELECTOR_LDT_FIRST;
+    PROCESS* p;
 
-    memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
-    p->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;
+    for (int i = 0; i < NR_TASKS; ++i) {
+        p = proc_table + i;
+        memset(p, 0, sizeof(PROCESS));
+        p->ldt_sel = ldt_selector;
+        // code segment
+        memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
+        p->ldts[0].attr1 = DA_C | (PRIVILEGE_TASK << 5);
 
-    memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
-    p->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;
+        memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
+        p->ldts[1].attr1 = DA_DRW | (PRIVILEGE_TASK << 5);
 
-    p->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.gs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    //p->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_USER;
+        p->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+        p->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+        p->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+        p->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+        p->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
+        p->regs.gs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
 
-    p->regs.eip = (uint32_t)input_task_main;
-    p->regs.esp = 0x8000;
-    p->regs.eflags = 0x1202;
-    p->ticks = p->priority = 3;
+        p->regs.eip = (uint32_t)task_table[i].entry_point;
+        p->regs.esp = memory_alloc_4k(TASK_STACK_SIZE) + TASK_STACK_SIZE;
+        p->regs.eflags = 0x1202;
+        p->pid = i;
 
-    /* init gdt descriptor*/
-    init_desc(&kgdt[INDEX_LDT_FIRST], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
+        p->_input_buffer.count = 0;
+        p->_input_buffer._p_head = p->_input_buffer._p_tail = p->_input_buffer._buff;
 
-    p++;
-    memset(p,0, sizeof(PROCESS));
-    p->ldt_sel = SELECTOR_LDT_FIRST + 8;
+        p->ticks = p->priority = task_table[i].privilege;
 
-    memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
-    p->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;
-
-    memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
-    p->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;
-
-    p->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    p->regs.gs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-    //p->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_USER;
-
-    p->regs.eip = (uint32_t)TestB;
-    p->regs.esp = 0x9000;
-    p->regs.eflags = 0x1202;
-    p->ticks = p->priority = 2;
-
-    init_desc(&kgdt[INDEX_LDT_FIRST + 1], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
-
-    p_proc_ready = proc_table;
-
+        init_desc(&kgdt[ldt_selector >> 3],(uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1,DA_LDT);
+        ldt_selector += 8;
+    }
     focus_proc = proc_table + 1;
 }
 

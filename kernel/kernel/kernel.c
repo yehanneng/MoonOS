@@ -3,10 +3,12 @@
 #include <kernel/idt.h>
 #include <kernel/proc.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <kernel/interrupt/interrupt.h>
 #include <kernel/memory.h>
 #include <liballoc.h>
 #include <string.h>
+#include <assert.h>
 
 #include "tasks/inputtask.h"
 
@@ -202,6 +204,68 @@ void kernel_schedule_process()
     }
 }
 
+uint32_t kernel_proc2pid(PROCESS* proc)
+{
+    return proc - proc_table;
+}
+
+int kernel_ldt_seg_linear(PROCESS* p, int idx)
+{
+    assert(idx < LDT_SIZE);
+    DESCRIPTOR* desc = &p->ldts[idx];
+
+    return desc->base_high << 24 | desc->base_mid << 16 | desc->base_low;
+}
+
+PROCESS* kernel_pid2proc(int pid)
+{
+    return proc_table + pid;
+}
+
+void* kernel_va2la(int pid, void* va)
+{
+    PROCESS* proc = kernel_pid2proc(pid);
+    uint32_t seg_base = kernel_ldt_seg_linear(proc, INDEX_LDT_RW);
+    uint32_t linear_addr = seg_base + (uint32_t)va;
+
+    if (pid < NR_TASKS) {
+        assert(linear_addr == (uint32_t) va);
+    }
+    return (void*) linear_addr;
+}
+
+int kernel_sendrec(int function, int src_dest, MESSAGE* msg, PROCESS* proc)
+{
+    assert(k_reenter == 0); // make sure not in a ring 0
+    int ret = 0;
+    int caller = kernel_proc2pid(proc);
+    MESSAGE* mla = (MESSAGE*) kernel_va2la(caller, msg);
+
+    assert(mla->source != src_dest);
+
+    /**
+	 * Actually we have the third message type: BOTH. However, it is not
+	 * allowed to be passed to the kernel directly. Kernel doesn't know
+	 * it at all. It is transformed into a SEND followed by a RECEIVE
+	 * by `send_recv()'.
+	 */
+    if (function == SEND) {
+        // ret = msg_send(p, src_dest, m);
+        if (ret != 0)
+            return ret;
+    }
+    else if (function == RECEIVE) {
+        // ret = msg_receive(p, src_dest, m);
+        if (ret != 0)
+            return ret;
+    }
+    else {
+        assert(function == BOTH);
+    }
+
+    return 0;
+}
+
 /****** only for debug ******/
 void TestA()
 {
@@ -257,6 +321,12 @@ void kernel_init_internal_process()
         p->_input_buffer._p_head = p->_input_buffer._p_tail = p->_input_buffer._buff;
 
         p->ticks = p->priority = task_table[i].privilege;
+
+        p->p_flags = 0;
+        p->p_msg = 0;
+        p->p_recvfrom = p->p_sendto = NO_TASK;
+        p->q_sending = p->next_sending = 0;
+        p->has_int_msg = 0;
 
         init_desc(&kgdt[ldt_selector >> 3],(uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1,DA_LDT);
         ldt_selector += 8;

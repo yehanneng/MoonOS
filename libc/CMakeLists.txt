@@ -19,10 +19,12 @@ set(KLIBC_SRC stdio/printf.c
                 string/memmove.c
                 string/memset.c
                 string/strlen.c
+                assert/assert.c
                 )
 set(KLIBC_HEADERS include/stdio.h
 				include/stdlib.h
-				include/string.h)
+				include/string.h
+				include/assert.h)
 set(KLIBC_SYS_HEADERS include/sys/cdefs.h)
 include_directories(include)
 include_directories(liballoc)

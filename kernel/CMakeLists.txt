@@ -25,6 +25,7 @@ set(KERNEL_SRC kernel/kernel.c
                 kernel/interrupt/clockinterrupt.h
                 kernel/interrupt/clockinterrupt.cpp
                 kernel/interrupt/keyboard.cpp
+                kernel/tasks/inputtask.cpp
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm
@@ -45,6 +46,8 @@ set(KERNEL_HEADERS include/kernel/tty.h
                 include/kernel/idt.h
                 include/kernel/proc.h
                 include/kernel/keyboard.h
+				include/kernel/tasks/task.h
+                kernel/tasks/InputTask.h
                 liballoc/liballoc.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)

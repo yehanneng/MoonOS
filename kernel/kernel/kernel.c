@@ -4,6 +4,10 @@
 #include <kernel/proc.h>
 #include <stdio.h>
 #include <kernel/interrupt/interrupt.h>
+#include <liballoc.h>
+#include <string.h>
+
+#include "tasks/inputtask.h"
 
 /* some global variable */
 DESCRIPTOR* kgdt = 0;
@@ -11,6 +15,7 @@ GATE* kidt = 0;
 TSS* tss = 0;
 int k_reenter = -1;
 PROCESS* p_proc_ready = 0;
+PROCESS* focus_proc = NULL;
 
 PROCESS proc_table[NR_TASKS];
 
@@ -232,7 +237,7 @@ void kernel_init_internal_process()
     p->regs.gs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
     //p->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_USER;
 
-    p->regs.eip = (uint32_t)TestA;
+    p->regs.eip = (uint32_t)input_task_main;
     p->regs.esp = 0x8000;
     p->regs.eflags = 0x1202;
     p->ticks = p->priority = 3;
@@ -266,4 +271,12 @@ void kernel_init_internal_process()
     init_desc(&kgdt[INDEX_LDT_FIRST + 1], (uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
 
     p_proc_ready = proc_table;
+
+    focus_proc = proc_table + 1;
+}
+
+
+PROCESS* kernel_getFocusProcess()
+{
+    return focus_proc;
 }

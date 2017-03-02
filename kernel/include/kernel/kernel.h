@@ -23,6 +23,9 @@ void kernel_init_idt();
 void kernel_schedule_process();
 void kernel_init_internal_process();
 
+struct _s_proc;
+
+struct _s_proc* kernel_getFocusProcess();
 #ifdef __cplusplus
 }
 #endif

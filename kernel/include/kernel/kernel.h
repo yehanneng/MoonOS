@@ -27,7 +27,7 @@ struct _s_proc;
 
 struct _s_proc* kernel_getFocusProcess();
 
-uint32_t kernel_proc2pid(struct _s_proc* proc);
+int kernel_proc2pid(struct _s_proc* proc);
 int kernel_ldt_seg_linear(struct _s_proc* p, int idx);
 struct _s_proc* kernel_pid2proc(int pid);
 void* kernel_va2la(int pid, void* va);
@@ -35,6 +35,11 @@ void* kernel_va2la(int pid, void* va);
 /* message function */
 struct _message;
 int kernel_sendrec(int function, int src_dest, struct _message* msg, struct _s_proc* proc);
+
+/* sys call */
+void* kernel_sys_call(int sys_call_vector, void* arg1, void* arg2, void* arg3, struct _s_proc* caller);
+void sys_call();
+
 #ifdef __cplusplus
 }
 #endif

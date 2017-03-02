@@ -98,7 +98,14 @@ enum msgtype {
 #define	STATUS		u.m3.m3i1
 #define	RETVAL		u.m3.m3i1
 
-
+/**
+ * user space ss call interface
+ * @param function
+ * @param src_dest
+ * @param msg
+ * @return
+ */
+int send_recv(int function, int src_dest,const MESSAGE* msg);
 
 
 __attribute__((__noreturn__))

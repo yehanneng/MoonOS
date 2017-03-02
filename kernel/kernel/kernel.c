@@ -22,12 +22,21 @@ PROCESS* focus_proc = NULL;
 
 PROCESS proc_table[NR_TASKS];
 
+/* private function */
+static int  msg_send(PROCESS* current, int dest, MESSAGE* m);
+static int  msg_receive(PROCESS* current, int src, MESSAGE* m);
+static int  deadlock(int src, int dest);
+static void unblock(PROCESS* p);
+static void block(PROCESS* p);
+
 // for debug
 void TestA();
+void TestB();
 
 TASK_T task_table[NR_TASKS] = {
         {input_task_main, TASK_STACK_SIZE,"InputTask",10},
-        {TestA, TASK_STACK_SIZE, "TestA",20}
+        {TestA, TASK_STACK_SIZE, "TestA",20},
+        {TestB, TASK_STACK_SIZE, "TestB", 20}
 };
 
 
@@ -161,7 +170,7 @@ void kernel_init_idt()
 	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 15], DA_386IGate,
 	// 	hwint15, PRIVILEGE_KRNL);
 
-    // init_idt_desc(&kidt[INT_VECTOR_SYS_CALL], DA_386IGate, sys_call, PRIVILEGE_USER);
+    init_idt_desc(&kidt[INT_VECTOR_SYS_CALL], DA_386IGate, sys_call, PRIVILEGE_USER);
 
     init_irq_table();
 
@@ -204,7 +213,7 @@ void kernel_schedule_process()
     }
 }
 
-uint32_t kernel_proc2pid(PROCESS* proc)
+int kernel_proc2pid(PROCESS* proc)
 {
     return proc - proc_table;
 }
@@ -236,10 +245,14 @@ void* kernel_va2la(int pid, void* va)
 
 int kernel_sendrec(int function, int src_dest, MESSAGE* msg, PROCESS* proc)
 {
-    assert(k_reenter == 0); // make sure not in a ring 0
+    assert(k_reenter == 0);	/* make sure we are not in ring0 */
+    assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS) ||
+           src_dest == ANY ||
+           src_dest == INTERRUPT);
     int ret = 0;
     int caller = kernel_proc2pid(proc);
     MESSAGE* mla = (MESSAGE*) kernel_va2la(caller, msg);
+    mla->source = caller;
 
     assert(mla->source != src_dest);
 
@@ -250,12 +263,12 @@ int kernel_sendrec(int function, int src_dest, MESSAGE* msg, PROCESS* proc)
 	 * by `send_recv()'.
 	 */
     if (function == SEND) {
-        // ret = msg_send(p, src_dest, m);
+        ret = msg_send(proc, src_dest, msg);
         if (ret != 0)
             return ret;
     }
     else if (function == RECEIVE) {
-        // ret = msg_receive(p, src_dest, m);
+        ret = msg_receive(proc, src_dest, msg);
         if (ret != 0)
             return ret;
     }
@@ -266,14 +279,248 @@ int kernel_sendrec(int function, int src_dest, MESSAGE* msg, PROCESS* proc)
     return 0;
 }
 
+static int msg_send(PROCESS* current, int dest, MESSAGE* m)
+{
+    PROCESS* p_sender = current;
+    PROCESS* p_dest = kernel_pid2proc(dest);
+    assert(kernel_proc2pid(p_sender) != dest);
+
+    if (deadlock(kernel_proc2pid(p_sender), dest)) {
+        // meet a dead block
+        assert(0);
+    }
+
+    if ((p_dest->p_flags & RECEIVING) /* dest is waiting */
+            &&(p_dest->p_recvfrom == kernel_proc2pid(p_sender) || (p_dest->p_recvfrom == ANY))
+            ) {
+        assert(p_dest->p_msg);
+        assert(m);
+
+        memcpy(kernel_va2la(dest, p_dest->p_msg),
+                kernel_va2la(kernel_proc2pid(p_sender), m)
+                , sizeof(MESSAGE));
+
+        p_dest->p_msg = 0;
+        p_dest->p_flags &= ~RECEIVING;
+        p_dest->p_recvfrom = NO_TASK;
+        unblock(p_dest);
+
+        assert(p_dest->p_flags == 0);
+        assert(p_dest->p_msg == 0);
+        assert(p_dest->p_recvfrom == NO_TASK);
+        assert(p_dest->p_sendto == NO_TASK);
+        assert(p_sender->p_flags == 0);
+        assert(p_sender->p_msg == 0);
+        assert(p_sender->p_recvfrom == NO_TASK);
+        assert(p_sender->p_sendto == NO_TASK);
+    } else { /* target is not waiting message */
+        p_sender->p_flags |= SENDING;
+        assert(p_sender->p_flags == SENDING);
+        p_sender->p_sendto = dest;
+        p_sender->p_msg = m;
+
+        PROCESS* p;
+        if (p_dest->q_sending) {
+            p = p_dest->q_sending;
+            while (p->next_sending) {
+                p = p->next_sending;
+            }
+            p->next_sending = p_sender;
+        }else {
+            p_dest->q_sending = p_sender;
+        }
+        p_sender->next_sending = 0;
+
+        assert(p_sender->p_flags == SENDING);
+        assert(p_sender->p_msg != 0);
+        assert(p_sender->p_recvfrom == NO_TASK);
+        assert(p_sender->p_sendto == dest);
+    }
+    return 0;
+}
+
+static int msg_receive(PROCESS* current, int src, MESSAGE* m)
+{
+    PROCESS* p_who_wanna_recv = current; /* strange name */
+    PROCESS* p_from = 0; /* from which the message will fetch */
+    PROCESS* prev = 0;
+    int copyok = 0;
+
+    assert(kernel_proc2pid(p_who_wanna_recv) != src);
+
+    if ((p_who_wanna_recv->has_int_msg) &&
+            ((src == ANY) || (src == INTERRUPT))) {
+        /*
+         * coming a interrupt message , and process is waiting this message
+         * */
+        MESSAGE msg;
+        memset(&msg, 0, sizeof(MESSAGE));
+        msg.source = INTERRUPT;
+        msg.type = HARD_INT;
+
+        assert(m);
+
+        memcpy(kernel_va2la(kernel_proc2pid(p_who_wanna_recv),m), &msg, sizeof(MESSAGE));
+
+        p_who_wanna_recv->has_int_msg = 0;
+
+        assert(p_who_wanna_recv->p_flags == 0);
+        assert(p_who_wanna_recv->p_msg == 0);
+        assert(p_who_wanna_recv->p_sendto == NO_TASK);
+        assert(p_who_wanna_recv->has_int_msg == 0);
+
+        return 0;
+    }
+
+    /*
+     * not a interrupt message
+     */
+    if (src == ANY) {
+        /*
+         * process is waiting for message from any process
+         * pick the first process in sending queue
+         */
+        if (p_who_wanna_recv->q_sending) {
+            p_from = p_who_wanna_recv->q_sending;
+            copyok = 1;
+
+            assert(p_who_wanna_recv->p_flags == 0);
+            assert(p_who_wanna_recv->p_msg == 0);
+            assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
+            assert(p_who_wanna_recv->p_sendto == NO_TASK);
+            assert(p_who_wanna_recv->q_sending != 0);
+            assert(p_from->p_msg != 0);
+            assert(p_from->p_recvfrom == NO_TASK);
+            assert(p_from->p_sendto == kernel_proc2pid(p_who_wanna_recv));
+        }
+    } else if (src >= 0 && src < NR_TASKS + NR_PROCS) {
+        /*
+         * process is waiting for a certain process : src
+         */
+        p_from = kernel_pid2proc(src);
+
+        if ((p_from->p_flags & SENDING) &&
+                (p_from->p_sendto == kernel_proc2pid(p_who_wanna_recv))) {
+            /*
+             * p_from is sending to this process
+             */
+            copyok = 1;
+
+            PROCESS* p = p_who_wanna_recv->q_sending;
+
+            assert(p);
+
+            while(p) {
+                assert(p->p_flags & SENDING);
+                if (kernel_proc2pid(p) == src) {
+                    break;
+                }
+                prev = p;
+                p = p->next_sending;
+            }
+
+            assert(p_who_wanna_recv->p_flags == 0);
+            assert(p_who_wanna_recv->p_msg == 0);
+            assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
+            assert(p_who_wanna_recv->p_sendto == NO_TASK);
+            assert(p_who_wanna_recv->q_sending != 0);
+            assert(p_from->p_flags == SENDING);
+            assert(p_from->p_msg != 0);
+            assert(p_from->p_recvfrom == NO_TASK);
+            assert(p_from->p_sendto == kernel_proc2pid(p_who_wanna_recv));
+        }
+    }
+
+    if (copyok) {
+        if (p_from == p_who_wanna_recv->q_sending) {
+            assert(prev == 0);
+            p_who_wanna_recv->q_sending = p_from->next_sending;
+            p_from->next_sending = 0;
+        }
+        assert(m);
+        assert(p_from->p_msg);
+
+        memcpy(kernel_va2la(kernel_proc2pid(p_who_wanna_recv), m),
+                kernel_va2la(kernel_proc2pid(p_from), p_from->p_msg),
+               sizeof(MESSAGE));
+
+        p_from->p_msg = 0;
+        p_from->p_sendto = NO_TASK;
+        p_from->p_flags &= ~RECEIVING;
+        unblock(p_from);
+    } else {
+        /* nobody is sending any message */
+        p_who_wanna_recv->p_flags |= RECEIVING;
+        p_who_wanna_recv->p_msg = m;
+        p_who_wanna_recv->p_recvfrom = src;
+
+        block(p_who_wanna_recv);
+
+        assert(p_who_wanna_recv->p_flags == RECEIVING);
+        assert(p_who_wanna_recv->p_msg != 0);
+        assert(p_who_wanna_recv->p_recvfrom != NO_TASK);
+        assert(p_who_wanna_recv->p_sendto == NO_TASK);
+        assert(p_who_wanna_recv->has_int_msg == 0);
+    }
+
+    return 0;
+}
+
+static int deadlock(int src, int dest)
+{
+    PROCESS* p = proc_table + dest;
+    while (1) {
+        if (p->p_flags & SENDING) {
+            if (p->p_sendto == src) {
+                /* dead block */
+                assert(p->p_sendto == src);
+                return 1;
+            }
+            p = proc_table + p->p_sendto;
+        } else {
+            break;
+        }
+    }
+    return 0;
+}
+
+static void unblock(PROCESS* p)
+{
+    assert(p->p_flags == 0);
+}
+
+static void block(PROCESS* p)
+{
+    assert(p->p_flags);
+    kernel_schedule_process();
+}
+
+/**
+ * there is only sys call like Minix
+ * and this is send and receive message
+ * @param sys_call_vector keep this ,maybe future this will be used
+ * @param arg1
+ * @param arg2
+ * @param arg3
+ * @param caller
+ * @return
+ */
+void* kernel_sys_call(int sys_call_vector, void* arg1, void* arg2, void* arg3, PROCESS* caller)
+{
+    return (void*) kernel_sendrec((int) arg1, (int) arg2, (MESSAGE*) arg3, caller);
+}
+
 /****** only for debug ******/
 void TestA()
 {
     int times = 0;
+    MESSAGE _msg;
     while(1){
-        if(times < 100){
-            printf("a");
-            times++;
+        times++;
+        int ret = send_recv(RECEIVE, ANY, &_msg);
+        if (ret == 0) {
+            _msg.RETVAL = 2460;
+            send_recv(SEND, _msg.source, &_msg);
         }
     }
 }
@@ -281,9 +528,12 @@ void TestA()
 void TestB()
 {
     int times = 0;
+    MESSAGE _msg;
+    send_recv(BOTH, 1, &_msg);
+    printf("retval = %d \n",_msg.RETVAL);
     while(1){
         if(times < 100){
-            printf("b");
+            printf("a");
             times++;
         }
     }

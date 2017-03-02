@@ -232,3 +232,22 @@ hwint06:		; Interrupt routine for irq 6 (floppy)
 ALIGN	16
 hwint07:		; Interrupt routine for irq 7 (printer)
     hwint_master	7
+
+
+extern kernel_sys_call
+global sys_call
+sys_call:
+    call save
+    sti
+	push	esi
+    push	dword [p_proc_ready]
+    push	edx
+    push	ecx
+    push	ebx
+    push    eax
+    call 	kernel_sys_call
+    add 	esp,4 * 5
+	pop		esi
+    mov [esi + EAXREG - P_STACKBASE],eax
+    cli
+    ret

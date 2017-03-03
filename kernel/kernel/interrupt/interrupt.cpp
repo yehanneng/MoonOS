@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "clockinterrupt.h"
+#include "hdinterrupt.h"
 #include <kernel/keyboard.h>
 
 AbstractInterruptHandler::AbstractInterruptHandler(uint8_t vector)
@@ -46,6 +47,7 @@ extern "C" void init_irq_table()
 {
     irq_table[CLOCK_IRQ] = new ClockInterruptHandler();
     irq_table[KEYBOARD_IRQ] = new KeyboardInterruptHandler();
+    irq_table[AT_WINI_IRQ] = new HDInterruptHandler();
 }
 
 void operator delete(void * p) // or delete(void *, std::size_t)

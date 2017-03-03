@@ -25,6 +25,8 @@ set(KERNEL_SRC kernel/kernel.c
                 kernel/interrupt/clockinterrupt.h
                 kernel/interrupt/clockinterrupt.cpp
                 kernel/interrupt/keyboard.cpp
+				kernel/interrupt/hdinterrupt.h
+                kernel/interrupt/hdinterrupt.cpp
                 kernel/tasks/inputtask.cpp
                 arch/i386/boot.asm
                 arch/i386/crti.asm

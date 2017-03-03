@@ -201,6 +201,27 @@ extern spurious_irq
     ret
 %endmacro
 
+%macro hwint_slave 1
+	call save
+	in al,INT_S_CTLMASK
+	or al,(1 << (%1 - 8))
+	out INT_S_CTLMASK,al
+	mov al,EOI
+	out INT_M_CTL,al
+	nop
+	nop
+	out INT_S_CTL,al
+	sti
+	push %1
+	call spurious_irq
+	pop ecx
+	cli
+	in al,INT_S_CTLMASK
+	and al,~(1 << (%1 - 8))
+	out INT_S_CTLMASK,al
+	ret
+%endmacro
+
 ALIGN	16
 hwint00:		; Interrupt routine for irq 0 (the clock).
     hwint_master	0
@@ -233,6 +254,37 @@ ALIGN	16
 hwint07:		; Interrupt routine for irq 7 (printer)
     hwint_master	7
 
+ALIGN	16
+hwint08:		; Interrupt routine for irq 8 (realtime clock).
+	hwint_slave	8
+
+ALIGN	16
+hwint09:		; Interrupt routine for irq 9 (irq 2 redirected)
+	hwint_slave	9
+
+ALIGN	16
+hwint10:		; Interrupt routine for irq 10
+	hwint_slave	10
+
+ALIGN	16
+hwint11:		; Interrupt routine for irq 11
+	hwint_slave	11
+
+ALIGN	16
+hwint12:		; Interrupt routine for irq 12
+	hwint_slave	12
+
+ALIGN	16
+hwint13:		; Interrupt routine for irq 13 (FPU exception)
+	hwint_slave	13
+
+ALIGN	16
+hwint14:		; Interrupt routine for irq 14 (AT winchester)
+	hwint_slave	14
+
+ALIGN	16
+hwint15:		; Interrupt routine for irq 15
+	hwint_slave	15
 
 extern kernel_sys_call
 global sys_call

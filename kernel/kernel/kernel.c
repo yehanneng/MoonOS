@@ -146,29 +146,29 @@ void kernel_init_idt()
     init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 7],      DA_386IGate,
                   hwint07,                  PRIVILEGE_KRNL);
 
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 8], DA_386IGate,
-	// 	hwint08, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 9], DA_386IGate,
-	// 	hwint09, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 10], DA_386IGate,
-	// 	hwint10, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 11], DA_386IGate,
-	// 	hwint11, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 12], DA_386IGate,
-	// 	hwint12, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 13], DA_386IGate,
-	// 	hwint13, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 14], DA_386IGate,
-	// 	hwint14, PRIVILEGE_KRNL);
-    //
-	// init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 15], DA_386IGate,
-	// 	hwint15, PRIVILEGE_KRNL);
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 8], DA_386IGate,
+	 	hwint08, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 9], DA_386IGate,
+	 	hwint09, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 10], DA_386IGate,
+	 	hwint10, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 11], DA_386IGate,
+	 	hwint11, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 12], DA_386IGate,
+	 	hwint12, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 13], DA_386IGate,
+	 	hwint13, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 14], DA_386IGate,
+	 	hwint14, PRIVILEGE_KRNL);
+
+	 init_idt_desc(&kidt[INT_VECTOR_IRQ0 + 15], DA_386IGate,
+	 	hwint15, PRIVILEGE_KRNL);
 
     init_idt_desc(&kidt[INT_VECTOR_SYS_CALL], DA_386IGate, sys_call, PRIVILEGE_USER);
 
@@ -228,6 +228,7 @@ int kernel_ldt_seg_linear(PROCESS* p, int idx)
 
 PROCESS* kernel_pid2proc(int pid)
 {
+    assert(pid < NR_TASKS + NR_PROCS);
     return proc_table + pid;
 }
 
@@ -588,4 +589,28 @@ void kernel_init_internal_process()
 PROCESS* kernel_getFocusProcess()
 {
     return focus_proc;
+}
+void kernel_info_task_from_interrupt(int pid)
+{
+    PROCESS* p_proc = kernel_pid2proc(pid);
+
+    if ((p_proc->p_flags & RECEIVING) && /* dest is waiting for the msg */
+        ((p_proc->p_recvfrom == INTERRUPT) || (p_proc->p_recvfrom == ANY))) {
+        p_proc->p_msg->source = INTERRUPT;
+        p_proc->p_msg->type = HARD_INT;
+        p_proc->p_msg = 0;
+        p_proc->has_int_msg = 0;
+        p_proc->p_flags &= ~RECEIVING; /* dest has received the msg */
+        p_proc->p_recvfrom = NO_TASK;
+        assert(p_proc->p_flags == 0);
+        unblock(p_proc);
+
+        assert(p_proc->p_flags == 0);
+        assert(p_proc->p_msg == 0);
+        assert(p_proc->p_recvfrom == NO_TASK);
+        assert(p_proc->p_sendto == NO_TASK);
+    }
+    else {
+        p_proc->has_int_msg = 1;
+    }
 }

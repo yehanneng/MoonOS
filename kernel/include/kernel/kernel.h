@@ -22,7 +22,7 @@ void kernel_init_gdt();
 void kernel_init_idt();
 void kernel_schedule_process();
 void kernel_init_internal_process();
-
+void kernel_info_task_from_interrupt(int pid);
 struct _s_proc;
 
 struct _s_proc* kernel_getFocusProcess();

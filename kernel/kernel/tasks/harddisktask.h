@@ -141,6 +141,7 @@ private:
     void ide_poll(uint16_t io);
     void wait_ide_interrupt();
     void ata_probe();
+    uint8_t ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev);
 private:
     bool ata_pm; /* Primary master exists? */
     bool ata_ps; /* Primary Slave exists? */

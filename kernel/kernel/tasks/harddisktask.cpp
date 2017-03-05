@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 
 uint8_t ide_buffer[2048];
@@ -24,11 +25,6 @@ HardDiskTask::~HardDiskTask() {
 void HardDiskTask::run() {
     printf("Hard Disk Task begin run\n");
     ata_probe();
-    if (ata_pm) {
-        printf("HD info: \n");
-        printf("HD size = %d \n", _drivers[0].size * 512 / 1024 / 1024);
-        printf("mode = %s \n", _drivers[0].model);
-    }
     while(1){}
 }
 
@@ -98,19 +94,15 @@ void HardDiskTask::ide_poll(uint16_t io) {
 
 retry:
     uint8_t status = in_byte(io + ATA_REG_STATUS);
-    //mprint("testing for BSY\n");
     if(status & ATA_SR_BSY) goto retry;
-    //mprint("BSY cleared\n");
 retry2:
     status = in_byte(io + ATA_REG_STATUS);
     if(status & ATA_SR_ERR)
     {
         printf("ERR set, device failure!\n");
-        //abort();
+        abort();
     }
-    //mprint("testing for DRQ\n");
     if(!(status & ATA_SR_DRQ)) goto retry2;
-    //mprint("DRQ set, ready to PIO!\n");
     return;
 }
 
@@ -145,6 +137,53 @@ void HardDiskTask::ata_probe() {
 
     }
     ide_identify(ATA_PRIMARY, ATA_SLAVE);
+}
+
+uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
+    uint8_t driver = _drivers[dev].drive;
+
+    uint16_t io = 0;
+    switch(driver)
+    {
+        case (ATA_PRIMARY << 1 | ATA_MASTER):
+            io = ATA_PRIMARY_IO;
+            driver = ATA_MASTER;
+            break;
+        case (ATA_PRIMARY << 1 | ATA_SLAVE):
+            io = ATA_PRIMARY_IO;
+            driver = ATA_SLAVE;
+            break;
+        case (ATA_SECONDARY << 1 | ATA_MASTER):
+            io = ATA_SECONDARY_IO;
+            driver = ATA_MASTER;
+            break;
+        case (ATA_SECONDARY << 1 | ATA_SLAVE):
+            io = ATA_SECONDARY_IO;
+            driver = ATA_SLAVE;
+            break;
+        default:
+            return 0;
+    }
+
+    uint8_t cmd = (driver == ATA_MASTER?0xE0:0xF0);
+    uint8_t slavebit = (driver == ATA_MASTER?0x00:0x01);
+    out_byte(io + ATA_REG_HDDEVSEL, (cmd | (uint8_t)((lba >> 24 & 0x0F))));
+    out_byte(io + 1, 0x00);
+    out_byte(io + ATA_REG_SECCOUNT0, 1);
+    out_byte(io + ATA_REG_LBA0, (uint8_t)((lba)));
+    out_byte(io + ATA_REG_LBA1, (uint8_t)((lba) >> 8));
+    out_byte(io + ATA_REG_LBA2, (uint8_t)((lba) >> 16));
+    out_byte(io + ATA_REG_COMMAND, ATA_CMD_READ_PIO);
+
+    ide_poll(io);
+
+    for(int i = 0; i < 256; i++)
+    {
+        uint16_t data = port_read(io + ATA_REG_DATA);
+        *(uint16_t *)(buf + i * 2) = data;
+    }
+    ide_400ns_delay(io);
+    return 1;
 }
 
 

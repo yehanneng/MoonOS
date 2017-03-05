@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <kernel/gdt.h>
 
-#define NR_TASKS 4
+#define NR_TASKS 5
 #define NR_PROCS 0
 
 #define TASK_STACK_SIZE 0x8000

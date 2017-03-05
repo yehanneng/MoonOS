@@ -12,6 +12,7 @@
 
 #include "tasks/inputtask.h"
 #include "tasks/ticktask.h"
+#include "tasks/harddisktask.h"
 
 /* some global variable */
 DESCRIPTOR* kgdt = 0;
@@ -38,6 +39,7 @@ TASK_T task_table[NR_TASKS] = {
         {input_task_main, TASK_STACK_SIZE,"InputTask",10},
         {TestA, TASK_STACK_SIZE, "TestA",20},
         {tick_task_main, TASK_STACK_SIZE, "TICK", 20},
+        {hd_task_main, TASK_STACK_SIZE, "HDDriver", 20},
         {TestB, TASK_STACK_SIZE, "TestB", 20}
 };
 

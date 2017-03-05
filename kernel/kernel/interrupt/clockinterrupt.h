@@ -9,6 +9,7 @@ public:
     ClockInterruptHandler();
     virtual ~ClockInterruptHandler();
     virtual void handle_irq() override;
+    unsigned int getTick();
 private:
     unsigned int _tick;
 };

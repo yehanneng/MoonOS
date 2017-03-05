@@ -22,3 +22,7 @@ void ClockInterruptHandler::handle_irq()
     _tick++;
     kernel_schedule_process();
 }
+
+unsigned int ClockInterruptHandler::getTick() {
+    return _tick;
+}

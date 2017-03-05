@@ -28,6 +28,10 @@ set(KERNEL_SRC kernel/kernel.c
 				kernel/interrupt/hdinterrupt.h
                 kernel/interrupt/hdinterrupt.cpp
                 kernel/tasks/inputtask.cpp
+				kernel/tasks/harddisktask.cpp
+				kernel/tasks/harddisktask.h
+				kernel/tasks/ticktask.cpp
+				kernel/tasks/ticktask.h
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm

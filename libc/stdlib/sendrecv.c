@@ -5,12 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 /*
  * asm sys_call interface
  */
 static int sendrec(int function, int src_dest,const MESSAGE* msg);
-
+int buffer[2];
 int send_recv(int function, int src_dest,const MESSAGE* msg)
 {
     int ret = 0;
@@ -27,7 +28,10 @@ int send_recv(int function, int src_dest,const MESSAGE* msg)
             break;
         case SEND:
         case RECEIVE:
+
             ret = sendrec(function, src_dest, msg);
+            buffer[0] = function;
+            buffer[1] = src_dest;
             break;
         default:
             assert((function == SEND)

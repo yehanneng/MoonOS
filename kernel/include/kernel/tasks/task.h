@@ -10,6 +10,7 @@
 #define INTERRUPT	-10
 #define TASK_INPUT 	0
 #define TASK_FS 	1
+#define TASK_TICK   2
 #define TASK_HD		3
 #define ANY		0x0fffffff - 2
 #define NO_TASK		0x0fffffff - 1

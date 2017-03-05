@@ -16,6 +16,7 @@ set(KLIBC_SRC stdio/printf.c
                 stdlib/abort.c
 				stdlib/sendrecv.c
                 stdlib/sendrecv.asm
+                stdlib/getticket.c
                 string/memcmp.c
                 string/memcpy.c
                 string/memmove.c

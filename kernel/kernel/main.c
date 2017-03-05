@@ -30,11 +30,11 @@ void kernel_early(multiboot_info_t* bootInfo)
 void kernel_main(void)
 {
     /**
-    * open soft interrupt and clock interrupt while call
+    * open soft interrupt and clock interrupt will call
     * process schedule
     */
     asm("sti");
     while(1){
-        // while never reacher here
+        // should never reacher here
     }
 }

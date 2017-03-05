@@ -22,5 +22,6 @@ HDInterruptHandler::~HDInterruptHandler()
  */
 void HDInterruptHandler::handle_irq()
 {
+
     kernel_info_task_from_interrupt(TASK_HD);
 }

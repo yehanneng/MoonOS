@@ -28,7 +28,6 @@ int send_recv(int function, int src_dest,const MESSAGE* msg)
             break;
         case SEND:
         case RECEIVE:
-
             ret = sendrec(function, src_dest, msg);
             buffer[0] = function;
             buffer[1] = src_dest;
@@ -39,6 +38,5 @@ int send_recv(int function, int src_dest,const MESSAGE* msg)
                     || (function == BOTH));
             break;
     }
-
     return ret;
 }

@@ -37,9 +37,9 @@ void TestB();
 
 TASK_T task_table[NR_TASKS] = {
         {input_task_main, TASK_STACK_SIZE,"InputTask",10},
-        {TestA, TASK_STACK_SIZE, "TestA",20},
+        {hd_task_main, TASK_STACK_SIZE, "HDDriver",20},
         {tick_task_main, TASK_STACK_SIZE, "TICK", 20},
-        {hd_task_main, TASK_STACK_SIZE, "HDDriver", 20},
+        {TestA, TASK_STACK_SIZE, "TestA", 20},
         {TestB, TASK_STACK_SIZE, "TestB", 20}
 };
 
@@ -365,7 +365,6 @@ static int msg_receive(PROCESS* current, int src, MESSAGE* m)
         /* There is an interrupt needs p_who_wanna_recv's handling and
         * p_who_wanna_recv is ready to handle it.
         */
-
         MESSAGE msg;
         memset(&msg, 0 , sizeof(MESSAGE));
         msg.source = INTERRUPT;
@@ -385,7 +384,6 @@ static int msg_receive(PROCESS* current, int src, MESSAGE* m)
 
         return 0;
     }
-
 
     /* Arrives here if no interrupt for p_who_wanna_recv. */
     if (src == ANY) {
@@ -562,7 +560,7 @@ void TestB()
 {
     int times = 0;
     MESSAGE _msg;
-    send_recv(BOTH, 1, &_msg);
+    send_recv(BOTH, 3, &_msg);
     printf("retval = %d \n",_msg.RETVAL);
     int tick = get_ticket();
     printf("get ticks = %d\n", tick);

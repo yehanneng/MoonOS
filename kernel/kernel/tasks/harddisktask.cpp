@@ -26,8 +26,7 @@ void HardDiskTask::run() {
     printf("Hard Disk Task begin run\n");
     ata_probe();
     while(1){
-        send_recv(BOTH, ANY, &_msg);
-        int type = _msg.type;
+
     }
 }
 

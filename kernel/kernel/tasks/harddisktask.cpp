@@ -25,7 +25,10 @@ HardDiskTask::~HardDiskTask() {
 void HardDiskTask::run() {
     printf("Hard Disk Task begin run\n");
     ata_probe();
-    while(1){}
+    while(1){
+        send_recv(BOTH, ANY, &_msg);
+        int type = _msg.type;
+    }
 }
 
 void HardDiskTask::ide_select_drive(uint8_t bus, uint8_t i) {
@@ -57,13 +60,18 @@ uint8_t HardDiskTask::ide_identify(uint8_t bus, uint8_t drive) {
     out_byte(io + ATA_REG_LBA2, 0);
     /* Now, send IDENTIFY */
     out_byte(io + ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
-    printf("Sent IDENTIFY\n");
+    // printf("Sent IDENTIFY\n");
     /* Now, read status port */
     uint8_t status = in_byte(io + ATA_REG_STATUS);
     if(status)
     {
         /* Now, poll untill BSY is clear. */
-        while(in_byte(io + ATA_REG_STATUS) & ATA_SR_BSY != 0) ;
+        int retry_time = 0;
+        while(in_byte(io + ATA_REG_STATUS) & ATA_SR_BSY != 0){
+            retry_time++;
+            if (retry_time == 10) return 0;
+        }
+        retry_time = 0;
 pm_stat_read:
         status = in_byte(io + ATA_REG_STATUS);
         if(status & ATA_SR_ERR)
@@ -71,8 +79,12 @@ pm_stat_read:
             printf("%d | %d has ERR set. Disabled.\n", bus, drive);
             return 0;
         }
-        while(!(status & ATA_SR_DRQ)) goto pm_stat_read;
-        printf("%s%s is online.\n", bus==ATA_PRIMARY?"Primary":"Secondary", drive==ATA_PRIMARY?" master":" slave");
+        while(!(status & ATA_SR_DRQ)){
+            retry_time++;
+            if (retry_time == 10) return 0;
+            goto pm_stat_read;
+        }
+        // printf("%s%s is online.\n", bus==ATA_PRIMARY?"Primary":"Secondary", drive==ATA_PRIMARY?" master":" slave");
         /* Now, actually read the data */
 
         for(int i = 0; i<256; i++)
@@ -117,26 +129,32 @@ void HardDiskTask::ata_probe() {
     int ret = ide_identify(ATA_PRIMARY, ATA_MASTER);
     if(ret)
     {
-        ata_pm = true;
+        this->ata_pm = true;
         ide_private_data *priv = &_drivers[0];
-        priv->commandSets = *((unsigned int *)(ide_buffer + ATA_IDENT_COMMANDSETS));
-        priv->drive = (ATA_PRIMARY << 1) | ATA_MASTER;
-
-        if (priv->commandSets & (1 << 26)){
-            // Device uses 48-Bit Addressing:
-            priv->size = *((unsigned int *)(ide_buffer + ATA_IDENT_MAX_LBA_EXT));
-        } else {
-            // Device uses CHS or 28-bit Addressing:
-            priv->size = *((unsigned int *)(ide_buffer + ATA_IDENT_MAX_LBA));
-        }
-        for(int k = 0; k < 40; k += 2) {
-            priv->model[k] = ide_buffer[ATA_IDENT_MODEL + k + 1];
-            priv->model[k + 1] = ide_buffer[ATA_IDENT_MODEL + k];
-        }
-        priv->model[40] = 0; // Terminate String.
-
+        _save_device_info(priv);
     }
-    ide_identify(ATA_PRIMARY, ATA_SLAVE);
+    ret = ide_identify(ATA_PRIMARY, ATA_SLAVE);
+    if (ret) {
+        this->ata_ps = true;
+        ide_private_data* priv = &_drivers[1];
+        _save_device_info(priv);
+    }
+    ret = ide_identify(ATA_SECONDARY, ATA_MASTER);
+    if (ret) {
+        this->ata_sm = true;
+        ide_private_data* priv = &_drivers[2];
+        _save_device_info(priv);
+    }
+    /*
+    some thing wrong with QEMU secondary slaver IDE channel
+    ret = ide_identify(ATA_SECONDARY, ATA_SLAVE);
+    printf("ret = %d \n", ret);
+    if (ret) {
+        this->ata_ss = true;
+        ide_private_data* priv = &_drivers[2];
+        _save_device_info(priv);
+    }
+    */
 }
 
 uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
@@ -184,6 +202,25 @@ uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
     }
     ide_400ns_delay(io);
     return 1;
+}
+
+void HardDiskTask::_save_device_info(ide_private_data* priv)
+{
+        priv->commandSets = *((unsigned int *)(ide_buffer + ATA_IDENT_COMMANDSETS));
+        priv->drive = (ATA_PRIMARY << 1) | ATA_MASTER;
+
+        if (priv->commandSets & (1 << 26)){
+            // Device uses 48-Bit Addressing:
+            priv->size = *((unsigned int *)(ide_buffer + ATA_IDENT_MAX_LBA_EXT));
+        } else {
+            // Device uses CHS or 28-bit Addressing:
+            priv->size = *((unsigned int *)(ide_buffer + ATA_IDENT_MAX_LBA));
+        }
+        for(int k = 0; k < 40; k += 2) {
+            priv->model[k] = ide_buffer[ATA_IDENT_MODEL + k + 1];
+            priv->model[k + 1] = ide_buffer[ATA_IDENT_MODEL + k];
+        }
+        priv->model[40] = 0; // Terminate String.
 }
 
 

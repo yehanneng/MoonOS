@@ -32,6 +32,8 @@ set(KERNEL_SRC kernel/kernel.c
 				kernel/tasks/harddisktask.h
 				kernel/tasks/ticktask.cpp
 				kernel/tasks/ticktask.h
+				kernel/tasks/filesystemtask.h
+				kernel/tasks/filesystemtask.cpp
                 arch/i386/boot.asm
                 arch/i386/crti.asm
                 arch/i386/crtn.asm

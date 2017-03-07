@@ -13,6 +13,7 @@
 #include "tasks/InputTask.h"
 #include "tasks/ticktask.h"
 #include "tasks/harddisktask.h"
+#include "tasks/filesystemtask.h"
 
 /* some global variable */
 DESCRIPTOR* kgdt = 0;
@@ -39,7 +40,7 @@ TASK_T task_table[NR_TASKS] = {
         {input_task_main, TASK_STACK_SIZE,"InputTask",10},
         {hd_task_main, TASK_STACK_SIZE, "HDDriver",20},
         {tick_task_main, TASK_STACK_SIZE, "TICK", 20},
-        {TestA, TASK_STACK_SIZE, "TestA", 20},
+        {file_task_main, TASK_STACK_SIZE, "FileTask", 20},
         {TestB, TASK_STACK_SIZE, "TestB", 20}
 };
 
@@ -560,24 +561,9 @@ void TestB()
 {
     int times = 0;
     MESSAGE _msg;
-    send_recv(BOTH, 3, &_msg);
-    printf("retval = %d \n",_msg.RETVAL);
     int tick = get_ticket();
     printf("get ticks = %d\n", tick);
 
-    uint8_t buf[512] = {0};
-    memset(&_msg, 0, sizeof(MESSAGE));
-    _msg.type = HD_READ;
-    _msg.START_LBA = 0;
-    _msg.SECTORS = 1;
-    _msg.BUF = buf;
-    send_recv(BOTH, HD_DEST, &_msg);
-    int status = _msg.STATUS;
-    if (status) {
-        printf("read status is success \n");
-        uint32_t *idex = buf + 446 + 12;
-        printf("first int = %d \n", (*idex) * 512 / 1024 / 1024);
-    }
     while(1){
         if(times < 100){
             printf("a");

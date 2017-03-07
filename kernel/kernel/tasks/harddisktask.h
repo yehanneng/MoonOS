@@ -142,6 +142,7 @@ private:
     void wait_ide_interrupt();
     void ata_probe();
     uint8_t ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev);
+    uint8_t ata_read(uint8_t* buf, uint32_t start_lba, uint32_t sectors, uint32_t dev);
     void _save_device_info(ide_private_data* priv);
 private:
     bool ata_pm; /* Primary master exists? */

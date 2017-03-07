@@ -565,6 +565,19 @@ void TestB()
     int tick = get_ticket();
     printf("get ticks = %d\n", tick);
 
+    uint8_t buf[512] = {0};
+    memset(&_msg, 0, sizeof(MESSAGE));
+    _msg.type = HD_READ;
+    _msg.START_LBA = 0;
+    _msg.SECTORS = 1;
+    _msg.BUF = buf;
+    send_recv(BOTH, HD_DEST, &_msg);
+    int status = _msg.STATUS;
+    if (status) {
+        printf("read status is success \n");
+        uint32_t *idex = buf + 446 + 12;
+        printf("first int = %d \n", (*idex) * 512 / 1024 / 1024);
+    }
     while(1){
         if(times < 100){
             printf("a");

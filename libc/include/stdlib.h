@@ -74,7 +74,9 @@ enum msgtype {
 	DEV_CLOSE,
 	DEV_READ,
 	DEV_WRITE,
-	DEV_IOCTL
+	DEV_IOCTL,
+	HD_READ,
+	HD_WRITE
 
 };
 
@@ -92,13 +94,16 @@ enum msgtype {
 #define	BUF		u.m3.m3p2
 #define	OFFSET		u.m3.m3i2
 #define	WHENCE		u.m3.m3i3
-
+#define START_LBA 	u.m3.m3i1
+#define SECTORS 	u.m3.m3i2
 
 #define	PID		u.m3.m3i2
 #define	STATUS		u.m3.m3i1
 #define	RETVAL		u.m3.m3i1
 
+#define HD_DEST 1
 #define TICK_DEST 2
+#define FS_DEST 3
 
 /**
  * user space ss call interface

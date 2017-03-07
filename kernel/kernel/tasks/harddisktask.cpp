@@ -25,7 +25,31 @@ HardDiskTask::~HardDiskTask() {
 void HardDiskTask::run() {
     printf("Hard Disk Task begin run\n");
     ata_probe();
+    if (this->ata_pm) {
+        printf("HD0 is avalible | size = %d \n", this->_drivers[0].size * 512 / 1024 / 1024);
+    }
     while(1){
+        int ret = send_recv(RECEIVE, ANY, &_msg);
+        if (ret == 0) {
+            int type = this->_msg.type;
+            switch (type) {
+                case HD_READ:
+                {
+                    int src = this->_msg.source;
+                    void* read_buffer = kernel_va2la(src,this->_msg.BUF);
+                    int begin_lba = this->_msg.START_LBA;
+                    int sectors = this->_msg.SECTORS;
+                    // for now hard code use hd0
+                    int status = this->ata_read((uint8_t*)read_buffer, begin_lba, sectors, 0);
+                    this->_msg.STATUS = status;
+                    send_recv(SEND, src, &_msg);
+                    printf("after read hd\n");
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
 
     }
 }
@@ -156,6 +180,13 @@ void HardDiskTask::ata_probe() {
     */
 }
 
+/**
+ * read one sector from hard disk
+ * @param buf
+ * @param lba
+ * @param dev
+ * @return
+ */
 uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
     uint8_t driver = _drivers[dev].drive;
 
@@ -200,6 +231,21 @@ uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
         *(uint16_t *)(buf + i * 2) = data;
     }
     ide_400ns_delay(io);
+    return 1;
+}
+
+uint8_t HardDiskTask::ata_read(uint8_t *buf, uint32_t start_lba, uint32_t sectors, uint32_t dev) {
+    uint8_t* p_buf = buf;
+    uint32_t current_lba = start_lba;
+    for (int i = 0; i < sectors; ++i) {
+        if (this->ata_read_one(p_buf, current_lba, dev)) {
+            p_buf += SECTOR_SIZE;
+            current_lba++;
+        } else {
+            // some thing is wrong
+            return 0;
+        }
+    }
     return 1;
 }
 

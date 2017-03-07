@@ -10,7 +10,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "tasks/inputtask.h"
+#include "tasks/InputTask.h"
 #include "tasks/ticktask.h"
 #include "tasks/harddisktask.h"
 

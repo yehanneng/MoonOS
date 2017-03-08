@@ -562,11 +562,11 @@ void TestB()
     int times = 0;
     MESSAGE _msg;
     int tick = get_ticket();
-    printf("get ticks = %d\n", tick);
+//    printf("get ticks = %d\n", tick);
 
     while(1){
         if(times < 100){
-            printf("a");
+//            printf("a");
             times++;
         }
     }

@@ -22,10 +22,11 @@ PartitionInfo::~PartitionInfo()
 }
 
 uint32_t PartitionInfo::getAbsStartSector() {
-    PartitionInfo* p = _parent_partition;
+    PartitionInfo* p = this->_parent_partition;
     uint32_t ret = this->start_sectors;
-    if (p != nullptr) {
+    while(p != nullptr) {
         ret += p->start_sectors;
+        p = p->_parent_partition;
     }
     return ret;
 }
@@ -77,7 +78,10 @@ void FileSystemTask::run() {
 }
 
 PartitionInfo* FileSystemTask::get_empty_partition_info() {
-    return get_partition_info(empty_index);
+    PartitionInfo* p = get_partition_info(empty_index);
+    p->_parent_partition = nullptr;
+    p->start_sectors = 0;
+    return p;
 }
 
 PartitionInfo* FileSystemTask::get_partition_info(uint32_t index) {

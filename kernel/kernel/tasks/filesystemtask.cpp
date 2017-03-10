@@ -9,6 +9,8 @@
 #include <liballoc.h>
 #include <string.h>
 
+#include <fatfilesystem.h>
+
 PartitionInfo::PartitionInfo()
 :empty(true),boot_indicate(0),system_id(0),base_sectors(0),start_sectors(0),total_sectors(0)
 ,_parent_partition(nullptr)
@@ -48,11 +50,6 @@ void FileSystemTask::run() {
     uint32_t disk_index = 0;
     for (int i = 0; i < empty_index; ++i) {
         PartitionInfo* p_info = get_partition_info(i);
-        if (p_info != nullptr && !p_info->empty) {
-            printf("Partion info : \n");
-            printf("SystemID = %d | start sector = %d | total sector = %d \n", p_info->system_id,
-                   p_info->getAbsStartSector(), p_info->total_sectors);
-        }
         if (p_info != nullptr && !p_info->empty && p_info->system_id != PART_WITH_SUB) {
             // get one Partition Info
             DiskInfo* p_disk = &_disk_infos[disk_index];
@@ -63,15 +60,20 @@ void FileSystemTask::run() {
             disk_index++;
         }
     }
+    DiskInfo* p_disk = &_disk_infos[0];
+    uint8_t _buf[SECTOR_SIZE];
+    FATFileSystem _fat32_file_system(p_disk->abs_start_lba);
 
-//    for (int j = 0; j < MAX_PARTITIONS; ++j) {
-//        DiskInfo* p_disk = &_disk_infos[j];
-//        if (p_disk->type != UNKNOW) {
-//            printf("Disk info : \n");
-//            printf("FileSystem = %d | start sector = %d | total sector = %d \n", p_disk->type, p_disk->abs_start_lba, p_disk->total_sectors);
-//        }
-//    }
-
+    uint32_t ret = read_disk_by_message(_buf, _fat32_file_system.getStartLBA(), 1);
+    if (ret == 0) {
+        _fat32_file_system.init(_buf);
+        ret = read_disk_by_message(_buf, _fat32_file_system.getRootSec(), 1);
+        if (ret == 0) {
+            DIR_ENTRY* p_dir = (DIR_ENTRY*)_buf;
+            p_dir += 2;
+            printf("name = %s | attr = %x\n", p_dir->name, p_dir->attr);
+        }
+    }
     while (1) {
 
     }
@@ -92,14 +94,12 @@ PartitionInfo* FileSystemTask::get_partition_info(uint32_t index) {
 void FileSystemTask::prase_partition_info(uint32_t start_lba, PartitionInfo* parent) {
     /* first read the MBR sector and get the root Partition Table */
     uint8_t* buf = (uint8_t *) kmalloc(SECTOR_SIZE);
-    _msg.type = HD_READ;
-    _msg.START_LBA = start_lba; // first Partition Table always in Sector 0
-    _msg.SECTORS = 1;
-    _msg.BUF = buf;
-    send_recv(BOTH, HD_DEST, &_msg);
 
-    uint32_t ret = parse_one_sector_partition_info(buf, parent);
-
+    uint32_t ret = 0;
+    ret = read_disk_by_message(buf, start_lba, 1);
+    if (ret == 0) {
+        ret = parse_one_sector_partition_info(buf, parent);
+    }
     kfree(buf);
 }
 
@@ -181,6 +181,17 @@ PartitionInfo* FileSystemTask::parse_partition_info_by_index(uint8_t *buf, uint3
     return p_info;
 }
 
+
+uint32_t FileSystemTask::read_disk_by_message(uint8_t *buf, uint32_t start_sec, uint32_t secs_to_read) {
+    uint32_t  ret = 0;
+    _msg.type = HD_READ;
+    _msg.START_LBA = start_sec; // first Partition Table always in Sector 0
+    _msg.SECTORS = secs_to_read;
+    _msg.BUF = buf;
+    ret = send_recv(BOTH, HD_DEST, &_msg);
+
+    return ret;
+}
 
 #ifdef __cplusplus
 extern "C" {

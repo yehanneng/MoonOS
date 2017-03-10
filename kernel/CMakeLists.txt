@@ -44,6 +44,8 @@ set(KERNEL_SRC kernel/kernel.c
                 liballoc/moonos.c
                 arch/icxxabi.h
                 arch/icxxabi.cpp
+                filesystem/fatfilesystem.cpp
+                filesystem/fatfilesystem.h
                 )
 set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/vga.h
@@ -57,11 +59,13 @@ set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/tasks/task.h
                 kernel/tasks/InputTask.h
                 liballoc/liballoc.h
+		        filesystem/fat32.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)
 set(KERNEL_INTERRUPT_INCLUDE include/kernel/interrupt/interrupt.h)
 include_directories(include)
 include_directories(liballoc)
+include_directories(filesystem)
 include_directories(${KLIBC_INCLUDE_DIR})
 
 add_executable(kernel ${KERNEL_SRC} ${KERNEL_HEADERS}

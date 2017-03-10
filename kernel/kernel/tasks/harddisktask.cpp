@@ -43,7 +43,6 @@ void HardDiskTask::run() {
                     int status = this->ata_read((uint8_t*)read_buffer, begin_lba, sectors, 0);
                     this->_msg.STATUS = status;
                     send_recv(SEND, src, &_msg);
-                    printf("after read hd\n");
                     break;
                 }
                 default:

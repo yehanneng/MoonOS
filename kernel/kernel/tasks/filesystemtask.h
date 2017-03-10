@@ -73,6 +73,7 @@ private:
     PartitionInfo* get_partition_info(uint32_t index);
     uint32_t parse_one_sector_partition_info(uint8_t* buf, PartitionInfo* parent);
     PartitionInfo* parse_partition_info_by_index(uint8_t* buf, uint32_t index, PartitionInfo* parent);
+    uint32_t read_disk_by_message(uint8_t* buf, uint32_t start_sec, uint32_t secs_to_read);
 private:
     uint32_t empty_index;
     PartitionInfo _partition_infos[MAX_PARTITIONS];

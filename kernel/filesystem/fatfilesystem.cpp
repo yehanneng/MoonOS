@@ -39,6 +39,10 @@ uint32_t FATFileSystem::init(uint8_t* buf) {
     return 1;
 }
 
-uint32_t FATFileSystem::getRootSec() {
-    return msdos_sb.root_sec;
+uint32_t FATFileSystem::getFirstDataSector() {
+    return msdos_sb.first_data_sec;
+}
+
+uint32_t FATFileSystem::getFirstFatSector() {
+    return msdos_sb.first_fat_sec;
 }

@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 void tick_task_main() {
-    printf("tick_task_main\n");
+    // printf("tick_task_main\n");
     TickTask _tick_task;
     _tick_task.run();
 }

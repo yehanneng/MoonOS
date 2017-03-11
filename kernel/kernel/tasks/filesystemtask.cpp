@@ -67,14 +67,9 @@ void FileSystemTask::run() {
     uint32_t ret = read_disk_by_message(_buf, _fat32_file_system.getStartLBA(), 1);
     if (ret == 0) {
         _fat32_file_system.init(_buf);
-        ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector(), 1);
+        ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector() + (89 - 2) * 2, 1);
         if (ret == 0) {
-            DIR_ENTRY* p_dir = (DIR_ENTRY*)_buf;
-            p_dir += 1;
-            uint8_t name[10];
-            memcpy(name, p_dir->name, 8);
-            name[8] = 0;
-            printf("name = %s | attr = %x | first data cluster = %d\n", name, p_dir->attr, (p_dir->starthi << 16 |p_dir->start));
+            _fat32_file_system.listRootContent(_buf);
         }
     }
     while (1) {

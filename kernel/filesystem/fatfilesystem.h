@@ -16,6 +16,7 @@ public:
     inline uint32_t getStartLBA() {return this->start_lba;}
     uint32_t getFirstDataSector();
     uint32_t getFirstFatSector();
+    void listRootContent(uint8_t* buf);
 protected:
     uint32_t start_lba;
     uint32_t cluster_size;

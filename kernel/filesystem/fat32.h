@@ -42,16 +42,21 @@ typedef struct _fat32 FAT32_ENTRY;
 #define MSDOS_NAME 11
 
 struct _dir_entry{
-    unsigned char   name[MSDOS_NAME];/* name and extension */
-    unsigned char   attr;           /* attribute bits */
-    unsigned char   lcase;          /* Case for base and extension */
-    unsigned char   ctime_cs;       /* Creation time, centiseconds (0-199) */
-    unsigned short  ctime;          /* Creation time */
-    unsigned short  cdate;          /* Creation date */
-    unsigned short  adate;          /* Last access date */
-    unsigned short  starthi;        /* High 16 bits of cluster in FAT32 */
-    unsigned short  time,date,start;/* time, date and first cluster */
-    unsigned int    size;           /* file size (in bytes) */
+    char name[8];
+    char ext[3];
+    uint8_t attrib;
+    uint8_t userattrib;
+
+    char undelete;
+    uint16_t createtime;
+    uint16_t createdate;
+    uint16_t accessdate;
+    uint16_t clusterhigh;
+
+    uint16_t modifiedtime;
+    uint16_t modifieddate;
+    uint16_t clusterlow;
+    uint32_t filesize;
 }__attribute__((packed));
 
 typedef struct _dir_entry DIR_ENTRY;

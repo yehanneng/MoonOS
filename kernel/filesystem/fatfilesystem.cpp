@@ -33,9 +33,9 @@ uint32_t FATFileSystem::init(uint8_t* buf) {
     msdos_sb.sec_per_clus = mFat32.BPB_SecPerClus;
     msdos_sb.cur_dir_clus = 2;
     cluster_size = msdos_sb.sec_per_clus * SECTOR_SIZE;
-    printf("mFATSz = %d | root sector = %d\n", mFATSz, msdos_sb.root_sec);
-    printf("first fat sec = %d | first data sec = %d\n", msdos_sb.first_fat_sec, msdos_sb.first_data_sec);
-    printf("sector per clus = %d | cluster size = %d\n", msdos_sb.sec_per_clus, cluster_size);
+    // printf("mFATSz = %d | root sector = %d\n", mFATSz, msdos_sb.root_sec);
+    // printf("first fat sec = %d | first data sec = %d\n", msdos_sb.first_fat_sec, msdos_sb.first_data_sec);
+    // printf("sector per clus = %d | cluster size = %d\n", msdos_sb.sec_per_clus, cluster_size);
     return 1;
 }
 
@@ -45,4 +45,29 @@ uint32_t FATFileSystem::getFirstDataSector() {
 
 uint32_t FATFileSystem::getFirstFatSector() {
     return msdos_sb.first_fat_sec;
+}
+
+void FATFileSystem::listRootContent(uint8_t *buf) {
+    for (int i = 0; i < (SECTOR_SIZE / sizeof(DIR_ENTRY)); ++i) {
+        DIR_ENTRY* p_dir = (DIR_ENTRY*)(buf + i * sizeof(DIR_ENTRY));
+        uint8_t first_byte = *((uint8_t*)p_dir);
+        if (first_byte == 0xE5){
+            // skip this entry
+        } else if(first_byte == 0){ // this is the last entry
+            printf("break loop in %d\n", i);
+            break;
+        } else {
+            if (p_dir->attrib != 0x0f) {
+                uint8_t name[10];
+                memcpy(name, p_dir->name, 8);
+                name[8] = 0;
+                printf("name = %s | attr = %x | first data cluster = %d\n", name, p_dir->attrib,
+                       (p_dir->clusterhigh << 16 | p_dir->clusterlow));
+            } else { // this is a long dir entry
+                DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
+                printf("id = %x \n", p_long_dir->id);
+
+            }
+        }
+    }
 }

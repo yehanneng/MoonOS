@@ -67,7 +67,7 @@ void FileSystemTask::run() {
     uint32_t ret = read_disk_by_message(_buf, _fat32_file_system.getStartLBA(), 1);
     if (ret == 0) {
         _fat32_file_system.init(_buf);
-        ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector() + (89 - 2) * 2, 1);
+        ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector(), 1);
         if (ret == 0) {
             _fat32_file_system.listRootContent(_buf);
         }

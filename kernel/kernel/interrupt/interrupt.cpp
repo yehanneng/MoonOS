@@ -60,12 +60,12 @@ void operator delete[](void* p)
     kfree(p);
 }
 
-void* operator new(size_t size)
+void* operator new(unsigned int size)
 {
     return kmalloc(size);
 }
 
-void* operator new[](size_t size)
+void* operator new[](unsigned int size)
 {
     return kmalloc(size);
 }

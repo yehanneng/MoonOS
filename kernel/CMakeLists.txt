@@ -66,12 +66,15 @@ set(KERNEL_INTERRUPT_INCLUDE include/kernel/interrupt/interrupt.h)
 include_directories(include)
 include_directories(liballoc)
 include_directories(filesystem)
-include_directories(${KLIBC_INCLUDE_DIR})
+include_directories(${PDCLIB_INCLUDE_DIR})
+include_directories(${PDCLIB_INTERNAL_DIR})
+include_directories(${PDC_PLATFORM_INCLUDES_PATH})
+include_directories(${PDC_PLATFORM_INTERNALS_PATH})
 
 add_executable(kernel ${KERNEL_SRC} ${KERNEL_HEADERS}
                         ${GRUB_INCLUDE} ${KERNEL_INTERRUPT_INCLUDE})
 
-target_link_libraries(kernel klibc)
+target_link_libraries(kernel plibc)
 
 #install rules
 install(TARGETS kernel DESTINATION boot)

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <kernel/interrupt/interrupt.h>
 #include <stdio.h>
+#include <message.h>
 #include "../interrupt/clockinterrupt.h"
 
 TickTask::TickTask() {

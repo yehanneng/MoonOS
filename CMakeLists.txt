@@ -7,5 +7,5 @@ set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS nasm asm)
 
 set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> -f elf <FLAGS> -o <OBJECT> <SOURCE>")
 
-add_subdirectory(libc)
+add_subdirectory(pdclib)
 add_subdirectory(kernel)

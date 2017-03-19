@@ -15,7 +15,7 @@
 
 // If we are told to not define our own size_t, then we skip the define.
 #define _HAVE_UINTPTR_T
-typedef	unsigned int	uintptr_t;
+typedef	unsigned int	kuintptr_t;
 
 //This lets you prefix malloc and friends
 #define PREFIX(func)		k ## func

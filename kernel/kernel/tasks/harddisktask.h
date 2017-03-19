@@ -8,6 +8,7 @@
 #include <kernel/tasks/task.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <message.h>
 
 /* MACRO Of IDE Driver */
 

@@ -18,13 +18,13 @@ int liballoc_unlock()
 
 
 
-void* liballoc_alloc(uint32_t pages)
+void* liballoc_alloc(size_t pages)
 {
 	void* a = kalloc_page(pages);
 	return a;
 }
 
-int liballoc_free(void* ptr, uint32_t pages)
+int liballoc_free(void* ptr, size_t pages)
 {
 	return kfree_page(ptr, pages);
 }

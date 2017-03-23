@@ -1,6 +1,7 @@
 #include <kernel/page.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <kernel/kernel.h>
 
 // pate table addr
 uint32_t* _page_derectory = (uint32_t*)PDE_BASE;

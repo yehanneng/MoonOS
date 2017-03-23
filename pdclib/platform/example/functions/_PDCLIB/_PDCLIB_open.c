@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <message.h>
 
 #ifndef REGTEST
 #include "_PDCLIB_glue.h"

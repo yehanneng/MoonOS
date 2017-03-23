@@ -8,6 +8,7 @@
 #include <kernel/interrupt/interrupt.h>
 #include <stdio.h>
 #include <message.h>
+#include <kernel/tty.h>
 #include "../interrupt/clockinterrupt.h"
 
 TickTask::TickTask() {
@@ -23,9 +24,12 @@ void TickTask::run() {
     int ret = 0;
     while (1) {
         ret = send_recv(RECEIVE, ANY, &_msg);
-        if (ret == 0) {
+        if (ret == 0 && _msg.type == GET_TICKS) {
             _msg.RETVAL = _clockHandler->getTick();
             send_recv(SEND, _msg.source, &_msg);
+        } else if(_msg.type == SYS_ALLOC_PAGE){
+            char n = '0' + _msg.PAGE_NUM;
+            terminal_putchar(n);
         }
     }
 }

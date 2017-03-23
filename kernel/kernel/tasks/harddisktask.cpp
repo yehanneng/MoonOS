@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <kernel/tty.h>
 
 
 uint8_t ide_buffer[2048];
@@ -23,11 +24,11 @@ HardDiskTask::~HardDiskTask() {
 }
 
 void HardDiskTask::run() {
-    printf("Hard Disk Task begin run\n");
-    ata_probe();
-    if (this->ata_pm) {
-        printf("HD0 is avalible | size = %d \n", this->_drivers[0].size * 512 / 1024 / 1024);
-    }
+//    printf("Hard Disk Task begin run\n");
+//    ata_probe();
+//    if (this->ata_pm) {
+//        printf("HD0 is avalible | size = %d \n", this->_drivers[0].size * 512 / 1024 / 1024);
+//    }
     while(1){
         int ret = send_recv(RECEIVE, ANY, &_msg);
         if (ret == 0) {
@@ -43,6 +44,11 @@ void HardDiskTask::run() {
                     int status = this->ata_read((uint8_t*)read_buffer, begin_lba, sectors, 0);
                     this->_msg.STATUS = status;
                     send_recv(SEND, src, &_msg);
+                    break;
+                }
+                case HD_WRITE:
+                {
+                    terminal_putchar('c');
                     break;
                 }
                 default:
@@ -125,11 +131,15 @@ void HardDiskTask::ide_400ns_delay(uint16_t io) {
 void HardDiskTask::ide_poll(uint16_t io) {
     for(int i=0; i< 4; i++)
         in_byte(io + ATA_REG_ALTSTATUS);
-
+uint32_t retryTime = 0;
 retry:
+    retryTime++;
+    if (retryTime == 100) return;
     uint8_t status = in_byte(io + ATA_REG_STATUS);
     if(status & ATA_SR_BSY) goto retry;
 retry2:
+    retryTime++;
+    if (retryTime == 100) return;
     status = in_byte(io + ATA_REG_STATUS);
     if(status & ATA_SR_ERR)
     {

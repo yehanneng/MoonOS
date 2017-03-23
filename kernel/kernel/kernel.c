@@ -9,6 +9,7 @@
 #include <liballoc.h>
 #include <string.h>
 #include <assert.h>
+#include <kernel/tty.h>
 
 #include "tasks/InputTask.h"
 #include "tasks/ticktask.h"
@@ -291,7 +292,9 @@ static int msg_send(PROCESS* current, int dest, MESSAGE* m)
     PROCESS* p_dest = proc_table + dest;
     assert(kernel_proc2pid(sender) != dest);
     if (deadlock(kernel_proc2pid(sender), dest)) { //dead block
-        printf("dead block\n");
+        KPRINTF("dead block\n");
+        terminal_putchar('0' + dest);
+        while(1) {}
         abort();
     }
 
@@ -560,10 +563,12 @@ void TestA()
 void TestB()
 {
     int times = 0;
-    MESSAGE _msg;
     int tick = get_ticket();
-//    printf("get ticks = %d\n", tick);
-
+    printf("get ticks = %d\n", tick);
+    printf("TestB\n");
+    char s[] = "1234";
+    printf("Run %s", "123");
+    printf("number \n");
     while(1){
         if(times < 100){
 //            printf("a");

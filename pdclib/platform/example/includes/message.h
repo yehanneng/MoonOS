@@ -78,7 +78,9 @@ enum msgtype {
     DEV_WRITE,
     DEV_IOCTL,
     HD_READ,
-    HD_WRITE
+    HD_WRITE,
+    SYS_ALLOC_PAGE,
+    SYS_FREE_PAGE
 
 };
 
@@ -102,6 +104,8 @@ enum msgtype {
 #define	PID		u.m3.m3i2
 #define	STATUS		u.m3.m3i1
 #define	RETVAL		u.m3.m3i1
+
+#define PAGE_NUM    u.m3.m3i1
 
 #define HD_DEST 1
 #define TICK_DEST 2

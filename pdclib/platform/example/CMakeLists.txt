@@ -26,6 +26,7 @@ set(PDC_PLATFORM_SRC_FILES ${PDC_PLATFORM_SRC_FILES}
 set(PDC_PLATFORM_SRC_FILES ${PDC_PLATFORM_SRC_FILES}
         ${CMAKE_CURRENT_SOURCE_DIR}/functions/message/sendrecv.c
         ${CMAKE_CURRENT_SOURCE_DIR}/functions/message/getticket.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/functions/message/sendrecv.asm
         )
 
 set(PDC_PLATFORM_SRC_FILES ${PDC_PLATFORM_SRC_FILES} PARENT_SCOPE)

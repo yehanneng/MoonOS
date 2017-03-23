@@ -11,11 +11,20 @@
 #include <stddef.h>
 #include "_PDCLIB_glue.h"
 #include <errno.h>
+#include <message.h>
 
 void * _PDCLIB_allocpages( size_t n )
 {
-    errno = ENOTSUP;
-    return NULL;
+    MESSAGE _msg;
+    _msg.type = SYS_ALLOC_PAGE;
+    _msg.PAGE_NUM = n;
+    int ret = send_recv(BOTH, TICK_DEST, &_msg);
+    if (ret != 0) {
+        errno = ENOTSUP;
+        return NULL;
+    }else {
+        return (void*)_msg.RETVAL;
+    }
 }
 
 #ifdef TEST

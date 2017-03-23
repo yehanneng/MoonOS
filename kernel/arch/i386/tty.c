@@ -6,54 +6,51 @@ unsigned int terminal_column;
 unsigned char terminal_color;
 unsigned short* terminal_buffer;
 
-void terminal_initialize(void)
-{
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void terminal_initialize(void) {
     terminal_row = 0;
     terminal_column = 0;
-    terminal_color = make_color(COLOR_LIGHT_GREY,COLOR_BLACK);
+    terminal_color = make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     terminal_buffer = VGA_MEMORY;
 
     for (unsigned int y = 0; y < VGA_HEIGHT; y++) {
         for (unsigned int x = 0; x < VGA_WIDTH; x++) {
             unsigned int index = y * VGA_WIDTH + x;
-            terminal_buffer[index] = make_vgaentry(' ',terminal_color);
+            terminal_buffer[index] = make_vgaentry(' ', terminal_color);
         }
     }
 }
 
-void terminal_setcolor(unsigned char color)
-{
+void terminal_setcolor(unsigned char color) {
     terminal_color = color;
 }
 
-void terminal_putentryat(char c,unsigned char color,unsigned int x,unsigned int y)
-{
+void terminal_putentryat(char c, unsigned char color, unsigned int x, unsigned int y) {
     const unsigned int index = y * VGA_WIDTH + x;
-    terminal_buffer[index] = make_vgaentry(c,color);
+    terminal_buffer[index] = make_vgaentry(c, color);
 }
 
-void terminal_putchar(char c)
-{
+void terminal_putchar(char c) {
     if (c == '\r') {
         /* code */
         terminal_column = -1;
-    }
-    else if (c == '\n') {
+    } else if (c == '\n') {
         /* code enter */
         terminal_row++;
         terminal_column = -1;
-    }
-	else if (c == '\b') {
-		terminal_column--;
-		if (terminal_column <= 0) {
-			terminal_column = VGA_WIDTH - 1;
-			terminal_row--;
-		}
-		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-		// move_cursor(terminal_row, terminal_column);
-		return;
-	}
-	else{
+    } else if (c == '\b') {
+        terminal_column--;
+        if (terminal_column <= 0) {
+            terminal_column = VGA_WIDTH - 1;
+            terminal_row--;
+        }
+        terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+        // move_cursor(terminal_row, terminal_column);
+        return;
+    } else {
         terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
     }
 
@@ -65,9 +62,13 @@ void terminal_putchar(char c)
     }
 }
 
-void terminal_write(const char* data, unsigned int size)
-{
+void terminal_write(const char *data, unsigned int size) {
     for (unsigned int i = 0; i < size; i++) {
         terminal_putchar(data[i]);
     }
 }
+
+
+#ifdef __cplusplus
+}
+#endif

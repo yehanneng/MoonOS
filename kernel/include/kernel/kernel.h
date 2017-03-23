@@ -1,11 +1,18 @@
 #ifndef MOONOS_KERNEL_H
 #define MOONOS_KERNEL_H
 #include <kernel/gdt.h>
+#include <kernel/tty.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* kernel printf */
+#define KPRINTF(format, args...) \
+    char _kprint_buf[255] = {0};sprintf(_kprint_buf, format, ##args);terminal_write(_kprint_buf, strlen(_kprint_buf))
 
 /************* asm function*****************/
 void restart();

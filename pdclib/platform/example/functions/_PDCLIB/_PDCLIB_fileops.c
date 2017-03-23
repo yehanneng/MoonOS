@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "_PDCLIB_glue.h"
 #include <errno.h>
+#include <message.h>
 
 static bool readf( _PDCLIB_fd_t self, void * buf, size_t length, 
                    size_t * numBytesRead )
@@ -20,8 +21,20 @@ static bool readf( _PDCLIB_fd_t self, void * buf, size_t length,
 static bool writef( _PDCLIB_fd_t self, const void * buf, size_t length, 
                    size_t * numBytesWritten )
 {
-    errno = ENOTSUP;
-    return false;
+    MESSAGE _msg;
+    _msg.type = DEV_WRITE;
+    _msg.FD = self.uval;
+    _msg.BUF = buf;
+    _msg.CNT = length;
+    int ret = send_recv(BOTH, FS_DEST, &_msg);
+    int retv = _msg.RETVAL;
+    if (ret != 0) {
+        errno = ENOTSUP;
+        return false;
+    }else {
+        *numBytesWritten = (size_t)retv;
+        return true;
+    }
 }
 static bool seekf( _PDCLIB_fd_t self, int_fast64_t offset, int whence,
     int_fast64_t* newPos )

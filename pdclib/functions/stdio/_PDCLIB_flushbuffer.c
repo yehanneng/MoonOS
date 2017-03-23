@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <message.h>
 
 #ifndef REGTEST
 #include "_PDCLIB_glue.h"

@@ -12,16 +12,17 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <message.h>
 
 size_t _PDCLIB_fwrite_unlocked( const void *restrict vptr,
                size_t size, size_t nmemb,
                FILE * _PDCLIB_restrict stream )
 {
+
     if ( _PDCLIB_prepwrite( stream ) == EOF )
     {
         return 0;
     }
-
     const char *restrict ptr = vptr;
     size_t nmemb_i;
     for ( nmemb_i = 0; nmemb_i < nmemb; ++nmemb_i )
@@ -30,7 +31,6 @@ size_t _PDCLIB_fwrite_unlocked( const void *restrict vptr,
         {
             char c = ptr[ nmemb_i * size + size_i ];
             stream->buffer[ stream->bufidx++ ] = c;
-
             if ( stream->bufidx == stream->bufsize || ( c == '\n' && stream->status & _IOLBF ) )
             {
                 if ( _PDCLIB_flushbuffer( stream ) == EOF )
@@ -40,7 +40,6 @@ size_t _PDCLIB_fwrite_unlocked( const void *restrict vptr,
                 }
             }
         }
-
         if ( stream->status & _IONBF )
         {
             if ( _PDCLIB_flushbuffer( stream ) == EOF )

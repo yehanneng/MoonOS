@@ -5,6 +5,7 @@
 #include "harddisktask.h"
 #include "filesystemtask.h"
 #include <assert.h>
+#include <kernel/tty.h>
 #include <stdio.h>
 #include <liballoc.h>
 #include <string.h>
@@ -48,32 +49,47 @@ FileSystemTask::~FileSystemTask()
 void FileSystemTask::run() {
     this->prase_partition_info(0, nullptr);
     uint32_t disk_index = 0;
-    for (int i = 0; i < empty_index; ++i) {
-        PartitionInfo* p_info = get_partition_info(i);
-        if (p_info != nullptr && !p_info->empty && p_info->system_id != PART_WITH_SUB) {
-            // get one Partition Info
-            DiskInfo* p_disk = &_disk_infos[disk_index];
-            p_disk->abs_start_lba = p_info->getAbsStartSector();
-            p_disk->total_sectors = p_info->total_sectors;
-            // TODO check SystemID and read different FileSystem
-            p_disk->type = FAT32;
-            disk_index++;
+    if (this->empty_index != 0) {
+        terminal_putchar('s');
+        for (int i = 0; i < empty_index; ++i) {
+            PartitionInfo *p_info = get_partition_info(i);
+            if (p_info != nullptr && !p_info->empty && p_info->system_id != PART_WITH_SUB) {
+                // get one Partition Info
+                DiskInfo *p_disk = &_disk_infos[disk_index];
+                p_disk->abs_start_lba = p_info->getAbsStartSector();
+                p_disk->total_sectors = p_info->total_sectors;
+                // TODO check SystemID and read different FileSystem
+                p_disk->type = FAT32;
+                disk_index++;
+            }
         }
-    }
-    DiskInfo* p_disk = &_disk_infos[0];
-    uint8_t _buf[SECTOR_SIZE];
-    FATFileSystem _fat32_file_system(p_disk->abs_start_lba);
+        DiskInfo *p_disk = &_disk_infos[0];
+        uint8_t _buf[SECTOR_SIZE];
+        FATFileSystem _fat32_file_system(p_disk->abs_start_lba);
 
-    uint32_t ret = read_disk_by_message(_buf, _fat32_file_system.getStartLBA(), 1);
-    if (ret == 0) {
-        _fat32_file_system.init(_buf);
-        ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector(), 1);
+        uint32_t ret = read_disk_by_message(_buf, _fat32_file_system.getStartLBA(), 1);
         if (ret == 0) {
-            _fat32_file_system.listRootContent(_buf);
+            _fat32_file_system.init(_buf);
+            ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector(), 1);
+            if (ret == 0) {
+                _fat32_file_system.listRootContent(_buf);
+            }
         }
     }
     while (1) {
-
+        uint32_t ret = send_recv(RECEIVE, ANY, &_msg);
+        if (ret == 0) {
+            if (_msg.type == DEV_WRITE) {
+                if (_msg.FD == 1) {
+                    int len = _msg.CNT;
+                    int src = _msg.source;
+                    terminal_write((const char *) _msg.BUF, len);
+                    _msg.type = DEV_WRITE;
+                    _msg.RETVAL = len;
+                    send_recv(SEND, src, &_msg);
+                }
+            }
+        }
     }
 }
 

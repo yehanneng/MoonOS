@@ -232,6 +232,7 @@ uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
     out_byte(io + ATA_REG_LBA2, (uint8_t)((lba) >> 16));
     out_byte(io + ATA_REG_COMMAND, ATA_CMD_READ_PIO);
 
+    wait_ide_interrupt();
     ide_poll(io);
 
     for(int i = 0; i < 256; i++)

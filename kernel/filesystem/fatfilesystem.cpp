@@ -72,7 +72,7 @@ void FATFileSystem::listRootContent(uint8_t *buf) {
             } else { // this is a long dir entry
                 DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
                 memset(print_buf,0, 100);
-                sprintf(print_buf,"id = %x \n", p_long_dir->id);
+                sprintf(print_buf,"id = %x | attr = %x\n", p_long_dir->id, p_long_dir->attr);
                 terminal_write(print_buf, strlen(print_buf));
             }
         }

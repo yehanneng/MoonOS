@@ -23,6 +23,6 @@ HDInterruptHandler::~HDInterruptHandler()
  */
 void HDInterruptHandler::handle_irq()
 {
-    // printf("hard interrupt info %d\n", TASK_HD);
-    // kernel_info_task_from_interrupt(TASK_HD);
+    /* notify HD Driver */
+    kernel_info_task_from_interrupt(TASK_HD);
 }

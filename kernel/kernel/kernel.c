@@ -16,6 +16,13 @@
 #include "tasks/harddisktask.h"
 #include "tasks/filesystemtask.h"
 
+/*
+ * kernel code is not running in any process
+ * so it can not use printf function
+ * instead should use KPRINT macro
+ */
+KPRINT_BUF_INIT();
+
 /* some global variable */
 DESCRIPTOR* kgdt = 0;
 GATE* kidt = 0;

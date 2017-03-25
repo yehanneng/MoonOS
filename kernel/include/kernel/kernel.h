@@ -9,10 +9,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define KPRINT_BUF _kernel_print_buf
+#define KPRINT_BUF_SIZE 255
 
+#define KPRINT_BUF_INIT() \
+    char KPRINT_BUF[KPRINT_BUF_SIZE]
 /* kernel printf */
 #define KPRINTF(format, args...) \
-    char _kprint_buf[255] = {0};sprintf(_kprint_buf, format, ##args);terminal_write(_kprint_buf, strlen(_kprint_buf))
+    memset(KPRINT_BUF, 0 ,KPRINT_BUF_SIZE);sprintf(KPRINT_BUF, format, ##args);terminal_write(KPRINT_BUF, strlen(KPRINT_BUF))
 
 /************* asm function*****************/
 void restart();

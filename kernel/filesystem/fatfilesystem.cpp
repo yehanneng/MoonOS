@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <kernel/tty.h>
 #include "fatfilesystem.h"
 #include "../kernel/tasks/harddisktask.h"
 
@@ -48,25 +49,31 @@ uint32_t FATFileSystem::getFirstFatSector() {
 }
 
 void FATFileSystem::listRootContent(uint8_t *buf) {
+    char print_buf[100];
     for (int i = 0; i < (SECTOR_SIZE / sizeof(DIR_ENTRY)); ++i) {
         DIR_ENTRY* p_dir = (DIR_ENTRY*)(buf + i * sizeof(DIR_ENTRY));
         uint8_t first_byte = *((uint8_t*)p_dir);
         if (first_byte == 0xE5){
             // skip this entry
         } else if(first_byte == 0){ // this is the last entry
-            printf("break loop in %d\n", i);
+            memset(print_buf, 0, 100);
+            sprintf(print_buf,"break loop in %d\n", i);
+            terminal_write(print_buf, strlen(print_buf));
             break;
         } else {
             if (p_dir->attrib != 0x0f) {
                 uint8_t name[10];
                 memcpy(name, p_dir->name, 8);
                 name[8] = 0;
-                printf("name = %s | attr = %x | first data cluster = %d\n", name, p_dir->attrib,
+                memset(print_buf,0, 100);
+                sprintf(print_buf,"name = %s | attr = %x | first data cluster = %d\n", name, p_dir->attrib,
                        (p_dir->clusterhigh << 16 | p_dir->clusterlow));
+                terminal_write(print_buf, strlen(print_buf));
             } else { // this is a long dir entry
                 DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
-                printf("id = %x \n", p_long_dir->id);
-
+                memset(print_buf,0, 100);
+                sprintf(print_buf,"id = %x \n", p_long_dir->id);
+                terminal_write(print_buf, strlen(print_buf));
             }
         }
     }

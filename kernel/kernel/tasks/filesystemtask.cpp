@@ -50,8 +50,7 @@ void FileSystemTask::run() {
     this->prase_partition_info(0, nullptr);
     uint32_t disk_index = 0;
     if (this->empty_index != 0) {
-        terminal_putchar('s');
-        for (int i = 0; i < empty_index; ++i) {
+        for (int i = 0; i < empty_index; i++) {
             PartitionInfo *p_info = get_partition_info(i);
             if (p_info != nullptr && !p_info->empty && p_info->system_id != PART_WITH_SUB) {
                 // get one Partition Info

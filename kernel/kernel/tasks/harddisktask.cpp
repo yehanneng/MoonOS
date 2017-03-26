@@ -223,7 +223,7 @@ uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
     }
 
     uint8_t cmd = (driver == ATA_MASTER?0xE0:0xF0);
-    uint8_t slavebit = (driver == ATA_MASTER?0x00:0x01);
+    // uint8_t slavebit = (driver == ATA_MASTER?0x00:0x01);
     out_byte(io + ATA_REG_HDDEVSEL, (cmd | (uint8_t)((lba >> 24 & 0x0F))));
     out_byte(io + 1, 0x00);
     out_byte(io + ATA_REG_SECCOUNT0, 1);
@@ -247,7 +247,7 @@ uint8_t HardDiskTask::ata_read_one(uint8_t *buf, uint32_t lba, uint32_t dev) {
 uint8_t HardDiskTask::ata_read(uint8_t *buf, uint32_t start_lba, uint32_t sectors, uint32_t dev) {
     uint8_t* p_buf = buf;
     uint32_t current_lba = start_lba;
-    for (int i = 0; i < sectors; ++i) {
+    for (uint32_t i = 0; i < sectors; ++i) {
         if (this->ata_read_one(p_buf, current_lba, dev)) {
             p_buf += SECTOR_SIZE;
             current_lba++;

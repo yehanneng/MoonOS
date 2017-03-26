@@ -5,18 +5,16 @@
 #include "harddisktask.h"
 #include "filesystemtask.h"
 #include <assert.h>
-#include <kernel/tty.h>
 #include <stdio.h>
 #include <liballoc.h>
+#include <kernel/kernel.h>
 #include <string.h>
 
-#include <fatfilesystem.h>
 
 PartitionInfo::PartitionInfo()
 :empty(true),boot_indicate(0),system_id(0),base_sectors(0),start_sectors(0),total_sectors(0)
 ,_parent_partition(nullptr)
 {
-
 }
 
 PartitionInfo::~PartitionInfo()
@@ -50,7 +48,7 @@ void FileSystemTask::run() {
     this->prase_partition_info(0, nullptr);
     uint32_t disk_index = 0;
     if (this->empty_index != 0) {
-        for (int i = 0; i < empty_index; i++) {
+        for (uint32_t i = 0; i < empty_index; i++) {
             PartitionInfo *p_info = get_partition_info(i);
             if (p_info != nullptr && !p_info->empty && p_info->system_id != PART_WITH_SUB) {
                 // get one Partition Info
@@ -64,14 +62,14 @@ void FileSystemTask::run() {
         }
         DiskInfo *p_disk = &_disk_infos[0];
         uint8_t _buf[SECTOR_SIZE];
-        FATFileSystem _fat32_file_system(p_disk->abs_start_lba);
+        mFileSystem = new FATFileSystem(p_disk->abs_start_lba);
 
-        uint32_t ret = read_disk_by_message(_buf, _fat32_file_system.getStartLBA(), 1);
+        uint32_t ret = read_disk_by_message(_buf, mFileSystem->getStartLBA(), 1);
         if (ret == 0) {
-            _fat32_file_system.init(_buf);
-            ret = read_disk_by_message(_buf, _fat32_file_system.getFirstDataSector(), 1);
+            mFileSystem->init(_buf);
+            ret = read_disk_by_message(_buf, mFileSystem->getFirstDataSector(), 1);
             if (ret == 0) {
-                _fat32_file_system.listRootContent(_buf);
+                mFileSystem->listRootContent(_buf);
             }
         }
     }
@@ -87,6 +85,16 @@ void FileSystemTask::run() {
                     _msg.RETVAL = len;
                     send_recv(SEND, src, &_msg);
                 }
+            } else if (_msg.type == DEV_OPEN) {
+                char pathname[MAX_NAME_LEN];
+                memset(pathname, 0, MAX_NAME_LEN);
+                uint32_t nameLen = _msg.NAME_LEN;
+                PHYS_COPY(FS_DEST, pathname, _msg.source, _msg.PATHNAME, strlen((const char*)_msg.PATHNAME));
+                int fd = mFileSystem->openFile(pathname, nameLen);
+
+                _msg.RETVAL = fd;
+                int src = _msg.source;
+                send_recv(SEND, src, &_msg);
             }
         }
     }

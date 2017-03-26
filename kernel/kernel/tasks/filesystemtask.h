@@ -7,6 +7,7 @@
 
 #include <kernel/kernel.h>
 #include <kernel/tasks/task.h>
+#include <fatfilesystem.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -79,6 +80,7 @@ private:
     PartitionInfo _partition_infos[MAX_PARTITIONS];
     DiskInfo _disk_infos[MAX_PARTITIONS];
     MESSAGE _msg;
+    FATFileSystem* mFileSystem;
 };
 
 #endif

@@ -28,8 +28,8 @@ void TickTask::run() {
             _msg.RETVAL = _clockHandler->getTick();
             send_recv(SEND, _msg.source, &_msg);
         } else if(_msg.type == SYS_ALLOC_PAGE){
-            char n = '0' + _msg.PAGE_NUM;
-            terminal_putchar(n);
+            int pageNum = _msg.PAGE_NUM;
+            printf("request pagenum = %d\n", pageNum);
         }
     }
 }

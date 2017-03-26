@@ -15,7 +15,7 @@
 KPRINT_BUF_INIT();
 
 FATFileSystem::FATFileSystem(uint32_t start_lba)
-:start_lba(start_lba),mFATSz(0),cluster_size(0)
+:start_lba(start_lba),mFATSz(0),cluster_size(0),address_index(0)
 {
     memset(&msdos_sb,0, sizeof(MSDOS_SB));
 }
@@ -40,9 +40,6 @@ uint32_t FATFileSystem::init(uint8_t* buf) {
     msdos_sb.sec_per_clus = mFat32.BPB_SecPerClus;
     msdos_sb.cur_dir_clus = 2;
     cluster_size = msdos_sb.sec_per_clus * SECTOR_SIZE;
-    // printf("mFATSz = %d | root sector = %d\n", mFATSz, msdos_sb.root_sec);
-    // printf("first fat sec = %d | first data sec = %d\n", msdos_sb.first_fat_sec, msdos_sb.first_data_sec);
-    // printf("sector per clus = %d | cluster size = %d\n", msdos_sb.sec_per_clus, cluster_size);
     return 1;
 }
 
@@ -55,7 +52,7 @@ uint32_t FATFileSystem::getFirstFatSector() {
 }
 
 void FATFileSystem::listRootContent(uint8_t *buf) {
-    for (int i = 0; i < (SECTOR_SIZE / sizeof(DIR_ENTRY)); ++i) {
+    for (uint32_t i = 0; i < (SECTOR_SIZE / sizeof(DIR_ENTRY)); ++i) {
         DIR_ENTRY* p_dir = (DIR_ENTRY*)(buf + i * sizeof(DIR_ENTRY));
         uint8_t first_byte = *((uint8_t*)p_dir);
         if (first_byte == 0xE5){
@@ -76,4 +73,28 @@ void FATFileSystem::listRootContent(uint8_t *buf) {
             }
         }
     }
+}
+
+int FATFileSystem::openFile(const char *filename, uint32_t nameLength) {
+    // KPRINTF("do file open on %s\n", filename);
+
+    return 3;
+}
+
+ADDRESS_SPACE* FATFileSystem::alloc_address_space() {
+    if(this->address_index < CACHE_ENTRY_SIZE) {
+        ADDRESS_SPACE* p = this->address_buff + this->address_index;
+        memset(p,0, sizeof(ADDRESS_SPACE));
+        return p;
+    } else {
+        return nullptr;
+    }
+}
+
+ADDRESS_SPACE* FATFileSystem::bread_sector(uint32_t sector) {
+    int create;
+    ADDRESS_SPACE* addr = nullptr;
+
+
+    return addr;
 }

@@ -51,6 +51,13 @@ int kernel_sendrec(int function, int src_dest, struct _message* msg, struct _s_p
 void* kernel_sys_call(int sys_call_vector, void* arg1, void* arg2, void* arg3, struct _s_proc* caller);
 void sys_call();
 
+
+/* fscopy */
+#define PHYS_COPY(dst_pid,p_dst, src_pid, p_src, len) \
+                memcpy(kernel_va2la(dst_pid,(void*)p_dst), \
+                        kernel_va2la(src_pid,(void*)p_src), \
+                        len)
+
 #ifdef __cplusplus
 }
 #endif

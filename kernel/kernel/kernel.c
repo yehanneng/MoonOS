@@ -571,11 +571,12 @@ void TestB()
 {
     int times = 0;
     int tick = get_ticket();
-    printf("get ticks = %d\n", tick);
-    printf("TestB\n");
-    char s[] = "1234";
-    printf("Run %s", "123");
-    printf("number \n");
+    // printf("get ticks = %d\n", tick);
+    char fileName[] = "README";
+    FILE* fileObj = fopen(fileName, "r");
+    if (fileObj != NULL) {
+        printf("file at %x\n", fileObj);
+    }
     while(1){
         if(times < 100){
 //            printf("a");

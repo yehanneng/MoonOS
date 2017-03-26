@@ -93,5 +93,14 @@ struct _msdos_sb {
 
 typedef struct _msdos_sb MSDOS_SB;
 
+#define MAX_NAME_LEN 64
+struct address_space {
+    uint32_t cluster;
+    char name[MAX_NAME_LEN];
+    uint32_t open_count;
+};
+typedef struct address_space ADDRESS_SPACE;
+
+
 
 #endif //MOONOS_FAT32_H

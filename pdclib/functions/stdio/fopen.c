@@ -20,8 +20,8 @@ FILE * fopen( const char * _PDCLIB_restrict filename,
 {
     int imode = _PDCLIB_filemode( mode );
     
-    if( imode == 0 || filename == NULL )
-        return NULL;
+//    if( imode == 0 || filename == NULL )
+//        return NULL;
 
     _PDCLIB_fd_t              fd;
     const _PDCLIB_fileops_t * ops;

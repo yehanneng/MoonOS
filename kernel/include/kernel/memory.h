@@ -17,10 +17,23 @@ typedef struct _memoryinfo{
 	FREEINFO free[MEMORY_FREES];
 } MEMINFO;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* inplement in memory.c */
-uint32_t parse_memory_info(multiboot_info_t* mbf);
+uint32_t parse_memory_info(multiboot_info_t *mbf);
+
 unsigned int memory_alloc_4k(unsigned int size);
+
 int mempry_free_4k(unsigned int addr, unsigned int size);
+
+void *kalloc_page(int pages);
+
+int kfree_page(void *ptr, int pages);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MEMORY_H

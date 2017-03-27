@@ -1,8 +1,6 @@
 #include "liballoc.h"
 #include <kernel/memory.h>
 
-void* kalloc_page(int pages);
-int kfree_page(void* ptr, int pages);
 int liballoc_lock()
 {
 	asm("cli");

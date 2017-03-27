@@ -8,7 +8,7 @@
 #include <kernel/interrupt/interrupt.h>
 #include <stdio.h>
 #include <message.h>
-#include <kernel/tty.h>
+#include <kernel/memory.h>
 #include "../interrupt/clockinterrupt.h"
 
 TickTask::TickTask() {
@@ -29,7 +29,17 @@ void TickTask::run() {
             send_recv(SEND, _msg.source, &_msg);
         } else if(_msg.type == SYS_ALLOC_PAGE){
             int pageNum = _msg.PAGE_NUM;
-            printf("request pagenum = %d\n", pageNum);
+            void* memaddr = kalloc_page(pageNum);
+            _msg.RETVAL =(int) memaddr;
+            int src = _msg.source;
+            send_recv(SEND, src, &_msg);
+        } else if (_msg.type == SYS_FREE_PAGE) {
+            int pageNum = _msg.PAGE_NUM;
+            void* p = _msg.PAGEADDR;
+            kfree_page(p, pageNum);
+            _msg.RETVAL =0;
+            int src = _msg.source;
+            send_recv(SEND, src, &_msg);
         }
     }
 }

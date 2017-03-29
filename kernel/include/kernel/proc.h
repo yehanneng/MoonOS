@@ -2,9 +2,11 @@
 #define MOONOS_PROC_H
 #include <stdint.h>
 #include <kernel/gdt.h>
+#include <filedescriptor.h>
 
 #define NR_TASKS 5
 #define NR_PROCS 0
+#define NR_OPEN 16
 
 #define TASK_STACK_SIZE 0x8000
 
@@ -92,7 +94,7 @@ struct _s_proc{
 							   */
     char p_name[16];
     INPUT_BUFFER _input_buffer;
-
+    FileP filp[NR_OPEN];
 };
 
 typedef struct _s_proc PROCESS;

@@ -46,6 +46,7 @@ set(KERNEL_SRC kernel/kernel.c
                 arch/icxxabi.cpp
                 filesystem/fatfilesystem.cpp
                 filesystem/fatfilesystem.h
+				filesystem/filedescriptor.h
                 )
 set(KERNEL_HEADERS include/kernel/tty.h
 				include/kernel/vga.h

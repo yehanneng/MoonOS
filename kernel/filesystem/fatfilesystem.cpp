@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <kernel/kernel.h>
+#include <liballoc.h>
 #include "fatfilesystem.h"
 #include "../kernel/tasks/harddisktask.h"
 
@@ -65,8 +66,8 @@ void FATFileSystem::listRootContent(uint8_t *buf) {
                 uint8_t name[10];
                 memcpy(name, p_dir->name, 8);
                 name[8] = 0;
-                KPRINTF("name = %s | attr = %x | first data cluster = %d\n", name, p_dir->attrib,
-                       (p_dir->clusterhigh << 16 | p_dir->clusterlow));
+                KPRINTF("name = %s | attr = %x | first data cluster = %d | size = %d\n", name, p_dir->attrib,
+                       (p_dir->clusterhigh << 16 | p_dir->clusterlow), p_dir->filesize);
             } else { // this is a long dir entry
                 DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
                 KPRINTF("id = %x | attr = %x\n", p_long_dir->id, p_long_dir->attr);
@@ -75,10 +76,35 @@ void FATFileSystem::listRootContent(uint8_t *buf) {
     }
 }
 
-int FATFileSystem::openFile(const char *filename, uint32_t nameLength) {
-    // KPRINTF("do file open on %s\n", filename);
+DIR_ENTRY* FATFileSystem::openFile(uint8_t* rootDirBuf, const char *filename, uint32_t nameLength) {
 
-    return 3;
+    for (uint32_t i = 0; i < (SECTOR_SIZE / sizeof(DIR_ENTRY)); ++i) {
+        DIR_ENTRY* p_dir = (DIR_ENTRY*)(rootDirBuf + i * sizeof(DIR_ENTRY));
+        uint8_t first_byte = *((uint8_t*)p_dir);
+        if (first_byte == 0xE5){
+            // skip this entry
+        } else if(first_byte == 0){ // this is the last entry
+            break;
+        } else {
+            if (p_dir->attrib != 0x0f) {
+                uint8_t name[10] = {0};
+                memcpy(name, p_dir->name, 8);
+                name[8] = 0;
+                KPRINTF("name = %s | attr = %x | first data cluster = %d | size = %d\n", name, p_dir->attrib,
+                        (p_dir->clusterhigh << 16 | p_dir->clusterlow), p_dir->filesize);
+                int ret = strcmp(filename, (const char*)name);
+                if (ret == 0) {
+                    DIR_ENTRY* p = (DIR_ENTRY*)kmalloc(sizeof(DIR_ENTRY));
+                    memcpy(p, p_dir, sizeof(DIR_ENTRY));
+                    return p;
+                }
+            } else { // this is a long dir entry
+                DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
+                KPRINTF("id = %x | attr = %x\n", p_long_dir->id, p_long_dir->attr);
+            }
+        }
+    }
+    return nullptr;
 }
 
 ADDRESS_SPACE* FATFileSystem::alloc_address_space() {

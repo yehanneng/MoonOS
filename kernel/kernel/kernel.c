@@ -572,10 +572,11 @@ void TestB()
     int times = 0;
     int tick = get_ticket();
     // printf("get ticks = %d\n", tick);
-    char fileName[] = "README";
+    char fileName[] = "README  ";
     FILE* fileObj = fopen(fileName, "r");
     if (fileObj != NULL) {
         printf("file at %x\n", fileObj);
+        fwrite()
     }
     while(1){
         if(times < 100){
@@ -623,6 +624,10 @@ void kernel_init_internal_process()
         p->p_recvfrom = p->p_sendto = NO_TASK;
         p->q_sending = p->next_sending = 0;
         p->has_int_msg = 0;
+
+        for (int j = 0; j < NR_OPEN; ++j) {
+            p->filp[j].available = -1;
+        }
 
         init_desc(&kgdt[ldt_selector >> 3],(uint32_t)p->ldts, LDT_SIZE * sizeof(DESCRIPTOR) - 1,DA_LDT);
         ldt_selector += 8;

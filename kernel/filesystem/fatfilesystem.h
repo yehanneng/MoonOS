@@ -23,7 +23,7 @@ public:
     uint32_t getFirstDataSector();
     uint32_t getFirstFatSector();
     void listRootContent(uint8_t* buf);
-    int openFile(const char* filename, uint32_t nameLength);
+    DIR_ENTRY* openFile(uint8_t* rootDirBuf, const char* filename, uint32_t nameLength);
 
 private:
     ADDRESS_SPACE* alloc_address_space();

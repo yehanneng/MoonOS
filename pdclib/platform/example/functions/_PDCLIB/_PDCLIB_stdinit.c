@@ -33,7 +33,8 @@ static unsigned char _PDCLIB_sout_ungetbuf[_PDCLIB_UNGETCBUFSIZE];
 static unsigned char _PDCLIB_serr_ungetbuf[_PDCLIB_UNGETCBUFSIZE];
 
 
-static FILE _PDCLIB_serr = { 
+static FILE _PDCLIB_serr = {
+    .handle     = { 0 },
     .ops        = &_PDCLIB_fileops, 
     .buffer     = _PDCLIB_serr_buffer, 
     .bufsize    = BUFSIZ, 

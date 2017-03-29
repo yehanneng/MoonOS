@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <liballoc.h>
+#include <kernel/proc.h>
 #include <kernel/kernel.h>
 #include <string.h>
 
@@ -36,6 +37,9 @@ FileSystemTask::FileSystemTask()
 :empty_index(0)
 {
     memset(_disk_infos, 0, MAX_PARTITIONS* sizeof(DiskInfo));
+    for (int i = 0; i < FILE_DESC_BUFFER_SIZE; ++i) {
+        mFileDescriptors[i].available = -1;
+    }
 }
 
 FileSystemTask::~FileSystemTask()
@@ -89,11 +93,16 @@ void FileSystemTask::run() {
                 char pathname[MAX_NAME_LEN];
                 memset(pathname, 0, MAX_NAME_LEN);
                 uint32_t nameLen = _msg.NAME_LEN;
-                PHYS_COPY(FS_DEST, pathname, _msg.source, _msg.PATHNAME, strlen((const char*)_msg.PATHNAME));
-                int fd = mFileSystem->openFile(pathname, nameLen);
+                PHYS_COPY(FS_DEST, pathname, _msg.source, _msg.PATHNAME, nameLen);
 
-                _msg.RETVAL = fd;
+
                 int src = _msg.source;
+                uint8_t _buf[SECTOR_SIZE];
+                uint32_t ret = read_disk_by_message(_buf, mFileSystem->getFirstDataSector(), 1);
+                if (ret == 0)
+                    _msg.RETVAL = do_file_open(src, _buf, pathname, nameLen);
+                else
+                    _msg.RETVAL = -1;
                 send_recv(SEND, src, &_msg);
             }
         }
@@ -212,6 +221,40 @@ uint32_t FileSystemTask::read_disk_by_message(uint8_t *buf, uint32_t start_sec, 
     ret = send_recv(BOTH, HD_DEST, &_msg);
 
     return ret;
+}
+
+uint32_t FileSystemTask::do_file_open(int caller,uint8_t* rootDirBuf,const char *pathName, uint32_t nameLength) {
+    DIR_ENTRY* p_dir = mFileSystem->openFile(rootDirBuf, pathName, nameLength);
+    if (p_dir == nullptr) {
+        return -1;
+    }
+    FileDescriptor* p_file_desc = nullptr;
+    for (int i = 0; i < FILE_DESC_BUFFER_SIZE; ++i) {
+        if (mFileDescriptors[i].available == -1) {
+            p_file_desc = &mFileDescriptors[i];
+            break;
+        }
+    }
+
+    if (p_file_desc == nullptr) {
+        return -1;
+    }
+    p_file_desc->data = p_dir;
+    int ret = -1;
+    PROCESS* p_caller = kernel_pid2proc(caller);
+    for (int j = 0; j < NR_OPEN; ++j) {
+        if (p_caller->filp[j].available == -1) {
+            ret = j;
+            p_caller->filp[j].available = 1;
+            p_caller->filp[j].p_file_desc = p_file_desc;
+            break;
+        }
+    }
+    if (ret >= 0) {
+        return ret + FILE_INDEX_OFFSET;
+    }
+
+    return -1;
 }
 
 #ifdef __cplusplus

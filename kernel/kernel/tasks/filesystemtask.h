@@ -8,6 +8,7 @@
 #include <kernel/kernel.h>
 #include <kernel/tasks/task.h>
 #include <fatfilesystem.h>
+#include <filedescriptor.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -22,6 +23,7 @@
 #define START_SECTOR_OFFSET 8
 #define TOTAL_SECTOR_OFFSET 12
 
+#define FILE_DESC_BUFFER_SIZE 64
 
 #define MAX_PARTITIONS 16
 #define HAS_BOOT_CODE 0x80
@@ -75,10 +77,12 @@ private:
     uint32_t parse_one_sector_partition_info(uint8_t* buf, PartitionInfo* parent);
     PartitionInfo* parse_partition_info_by_index(uint8_t* buf, uint32_t index, PartitionInfo* parent);
     uint32_t read_disk_by_message(uint8_t* buf, uint32_t start_sec, uint32_t secs_to_read);
+    uint32_t do_file_open(int caller, uint8_t* rootDirBuf, const char* pathName, uint32_t nameLength);
 private:
     uint32_t empty_index;
     PartitionInfo _partition_infos[MAX_PARTITIONS];
     DiskInfo _disk_infos[MAX_PARTITIONS];
+    FileDescriptor mFileDescriptors[FILE_DESC_BUFFER_SIZE];
     MESSAGE _msg;
     FATFileSystem* mFileSystem;
 };

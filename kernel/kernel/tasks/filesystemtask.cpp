@@ -11,6 +11,7 @@
 #include <kernel/kernel.h>
 #include <string.h>
 
+#define MIN(a, b) a < b ? a : b
 
 PartitionInfo::PartitionInfo()
 :empty(true),boot_indicate(0),system_id(0),base_sectors(0),start_sectors(0),total_sectors(0)
@@ -103,6 +104,31 @@ void FileSystemTask::run() {
                     _msg.RETVAL = do_file_open(src, _buf, pathname, nameLen);
                 else
                     _msg.RETVAL = -1;
+                send_recv(SEND, src, &_msg);
+            } else if (_msg.type == DEV_READ) {
+                int src = _msg.source;
+                int fd = _msg.FD;
+                void* readBuf = (void*) kernel_va2la(src, _msg.BUF);
+                int lengthToRead = _msg.CNT;
+
+                uint8_t kbuf[SECTOR_SIZE] = {0};
+                PROCESS* p_caller = kernel_pid2proc(src);
+                FileP* p_file = &p_caller->filp[fd - FILE_INDEX_OFFSET];
+
+                assert(p_file->available);
+                int dataSector = mFileSystem->getFirstFileDataSector(p_file->p_file_desc);
+                int ret = read_disk_by_message(kbuf,dataSector, 1);
+                if (ret == 0) {
+                    int fileSize = mFileSystem->getFileSize(p_file->p_file_desc);
+                    int recLen = MIN(fileSize + 1, lengthToRead);
+                    if (recLen >= SECTOR_SIZE) recLen = SECTOR_SIZE - 1;
+                    kbuf[recLen] = -1;
+                    memcpy(readBuf, kbuf, fileSize < lengthToRead ? fileSize : lengthToRead);
+                    _msg.CNT = recLen;
+                } else {
+                    _msg.CNT = 0;
+                }
+
                 send_recv(SEND, src, &_msg);
             }
         }

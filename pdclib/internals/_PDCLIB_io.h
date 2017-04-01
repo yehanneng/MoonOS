@@ -205,7 +205,6 @@ static inline _PDCLIB_size_t _PDCLIB_getchars( char * out, _PDCLIB_size_t n,
         if( c == stopchar )
             return i;
     }
-
     while ( i != n )
     {
         while ( stream->bufidx != stream->bufend && i != n)

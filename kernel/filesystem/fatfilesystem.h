@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "fat32.h"
+#include <filedescriptor.h>
 
 #define CACHE_ENTRY_SIZE 16
 #define RADIX_THRESHOLD 4
@@ -24,7 +25,8 @@ public:
     uint32_t getFirstFatSector();
     void listRootContent(uint8_t* buf);
     DIR_ENTRY* openFile(uint8_t* rootDirBuf, const char* filename, uint32_t nameLength);
-
+    int getFirstFileDataSector(FileDescriptor* p_descriptor);
+    int getFileSize(FileDescriptor* p_descripor);
 private:
     ADDRESS_SPACE* alloc_address_space();
     ADDRESS_SPACE* bread_sector(uint32_t sector);

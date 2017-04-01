@@ -14,8 +14,20 @@
 static bool readf( _PDCLIB_fd_t self, void * buf, size_t length, 
                    size_t * numBytesRead )
 {
-    errno = ENOTSUP;
-    return false;
+    MESSAGE _msg;
+    _msg.type = DEV_READ;
+    _msg.FD = self.sval;
+    _msg.BUF = buf;
+    _msg.CNT = length - 1;
+    int ret = send_recv(BOTH, FS_DEST, &_msg);
+    if (ret != 0 || _msg.CNT == 0) {
+        errno = ENOTSUP;
+        return false;
+    }else {
+        int recRead = (size_t)_msg.CNT;
+        *numBytesRead = recRead;
+        return true;
+    }
 }
 
 static bool writef( _PDCLIB_fd_t self, const void * buf, size_t length, 
@@ -39,12 +51,14 @@ static bool writef( _PDCLIB_fd_t self, const void * buf, size_t length,
 static bool seekf( _PDCLIB_fd_t self, int_fast64_t offset, int whence,
     int_fast64_t* newPos )
 {
+    printf("seekf\n");
     errno = ENOTSUP;
     return false;
 }
 
 static void closef( _PDCLIB_fd_t self )
 {
+    printf("close\n");
     errno = ENOTSUP;
 }
 

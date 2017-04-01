@@ -576,7 +576,9 @@ void TestB()
     FILE* fileObj = fopen(fileName, "r");
     if (fileObj != NULL) {
         printf("file at %x\n", fileObj);
-        fwrite()
+        uint8_t buf[20] = {0};
+        size_t ret = fread(buf, 20, 1, fileObj);
+        printf("buf ugetc = %s | ret = %d\n", buf, ret);
     }
     while(1){
         if(times < 100){

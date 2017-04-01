@@ -90,8 +90,6 @@ DIR_ENTRY* FATFileSystem::openFile(uint8_t* rootDirBuf, const char *filename, ui
                 uint8_t name[10] = {0};
                 memcpy(name, p_dir->name, 8);
                 name[8] = 0;
-                KPRINTF("name = %s | attr = %x | first data cluster = %d | size = %d\n", name, p_dir->attrib,
-                        (p_dir->clusterhigh << 16 | p_dir->clusterlow), p_dir->filesize);
                 int ret = strcmp(filename, (const char*)name);
                 if (ret == 0) {
                     DIR_ENTRY* p = (DIR_ENTRY*)kmalloc(sizeof(DIR_ENTRY));
@@ -100,11 +98,21 @@ DIR_ENTRY* FATFileSystem::openFile(uint8_t* rootDirBuf, const char *filename, ui
                 }
             } else { // this is a long dir entry
                 DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
-                KPRINTF("id = %x | attr = %x\n", p_long_dir->id, p_long_dir->attr);
             }
         }
     }
     return nullptr;
+}
+
+int FATFileSystem::getFirstFileDataSector(FileDescriptor *p_descriptor) {
+    DIR_ENTRY* p_dir = (DIR_ENTRY *) p_descriptor->data;
+
+    return (p_dir->clusterhigh << 16 | p_dir->clusterlow) * this->msdos_sb.sec_per_clus - 4 + this->msdos_sb.first_data_sec;
+}
+
+int FATFileSystem::getFileSize(FileDescriptor *p_descripor) {
+    DIR_ENTRY* p_dir = (DIR_ENTRY *) p_descripor->data;
+    return p_dir->filesize;
 }
 
 ADDRESS_SPACE* FATFileSystem::alloc_address_space() {

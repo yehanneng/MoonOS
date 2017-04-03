@@ -25,10 +25,14 @@ HardDiskTask::~HardDiskTask() {
 
 void HardDiskTask::run() {
 //    printf("Hard Disk Task begin run\n");
-//    ata_probe();
-//    if (this->ata_pm) {
-//        printf("HD0 is avalible | size = %d \n", this->_drivers[0].size * 512 / 1024 / 1024);
-//    }
+    ata_probe();
+    if (this->ata_pm) { // for now only support hd0
+        char printbuf[20] = {0};
+        sprintf(printbuf,"HD0 is avalible | size = %d \n", this->_drivers[0].size * 512 / 1024 / 1024);
+        terminal_write(printbuf, strlen(printbuf));
+    } else {
+        assert(0);
+    }
     while(1){
         int ret = send_recv(RECEIVE, ANY, &_msg);
         if (ret == 0) {

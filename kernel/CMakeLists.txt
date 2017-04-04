@@ -61,6 +61,7 @@ set(KERNEL_HEADERS include/kernel/tty.h
                 kernel/tasks/InputTask.h
                 liballoc/liballoc.h
 		        filesystem/fat32.h
+				filesystem/absfilesystem.h
 				)
 set(GRUB_INCLUDE include/grub/multiboot.h)
 set(KERNEL_INTERRUPT_INCLUDE include/kernel/interrupt/interrupt.h)

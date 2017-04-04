@@ -4,6 +4,7 @@
 
 #include "harddisktask.h"
 #include "filesystemtask.h"
+#include <fatfilesystem.h>
 #include <assert.h>
 #include <stdio.h>
 #include <liballoc.h>
@@ -67,14 +68,15 @@ void FileSystemTask::run() {
         }
         DiskInfo *p_disk = &_disk_infos[0];
         uint8_t _buf[SECTOR_SIZE];
-        mFileSystem = new FATFileSystem(p_disk->abs_start_lba);
-
+        if (p_disk->type == FAT32) { // support other file system
+            mFileSystem = new FATFileSystem(p_disk->abs_start_lba);
+        }
         uint32_t ret = read_disk_by_message(_buf, mFileSystem->getStartLBA(), 1);
         if (ret == 0) {
             mFileSystem->init(_buf);
             ret = read_disk_by_message(_buf, mFileSystem->getFirstDataSector(), 1);
             if (ret == 0) {
-                mFileSystem->listRootContent(_buf);
+                // success parse root directory
             }
         }
     }
@@ -250,7 +252,7 @@ uint32_t FileSystemTask::read_disk_by_message(uint8_t *buf, uint32_t start_sec, 
 }
 
 uint32_t FileSystemTask::do_file_open(int caller,uint8_t* rootDirBuf,const char *pathName, uint32_t nameLength) {
-    DIR_ENTRY* p_dir = mFileSystem->openFile(rootDirBuf, pathName, nameLength);
+    DIR_ENTRY* p_dir = (DIR_ENTRY*)mFileSystem->openFile(rootDirBuf, pathName, nameLength);
     if (p_dir == nullptr) {
         return -1;
     }

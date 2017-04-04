@@ -7,7 +7,8 @@
 
 #include <stdint.h>
 #include "fat32.h"
-#include <filedescriptor.h>
+#include "filedescriptor.h"
+#include <absfilesystem.h>
 
 #define CACHE_ENTRY_SIZE 16
 #define RADIX_THRESHOLD 4
@@ -15,18 +16,20 @@
 
 #ifdef __cplusplus
 
-class FATFileSystem {
+class FATFileSystem: public AbsFileSystem {
 public:
     FATFileSystem(uint32_t start_lba);
     virtual ~FATFileSystem();
-    uint32_t init(uint8_t* buf);
-    inline uint32_t getStartLBA() {return this->start_lba;}
-    uint32_t getFirstDataSector();
+    uint32_t init(uint8_t* buf) override ;
+    inline uint32_t getStartLBA() override {return this->start_lba;}
+    uint32_t getFirstDataSector() override ;
     uint32_t getFirstFatSector();
     void listRootContent(uint8_t* buf);
-    DIR_ENTRY* openFile(uint8_t* rootDirBuf, const char* filename, uint32_t nameLength);
-    int getFirstFileDataSector(FileDescriptor* p_descriptor);
-    int getFileSize(FileDescriptor* p_descripor);
+    void* openFile(uint8_t* rootDirBuf, const char* filename, uint32_t nameLength) override ;
+    int getFirstFileDataSector(FileDescriptor* p_descriptor) override ;
+    int getFileSize(FileDescriptor* p_descripor) override ;
+    void* createFile(const char* fileName, uint32_t nameLength) override ;
+    int readFromFile(uint8_t* buf, uint32_t bufLength, FileDescriptor* fileDescriptor) override ;
 private:
     ADDRESS_SPACE* alloc_address_space();
     ADDRESS_SPACE* bread_sector(uint32_t sector);

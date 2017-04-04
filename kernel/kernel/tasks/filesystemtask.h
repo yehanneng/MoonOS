@@ -7,7 +7,7 @@
 
 #include <kernel/kernel.h>
 #include <kernel/tasks/task.h>
-#include <fatfilesystem.h>
+#include <absfilesystem.h>
 #include <filedescriptor.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -84,7 +84,7 @@ private:
     DiskInfo _disk_infos[MAX_PARTITIONS];
     FileDescriptor mFileDescriptors[FILE_DESC_BUFFER_SIZE];
     MESSAGE _msg;
-    FATFileSystem* mFileSystem;
+    AbsFileSystem* mFileSystem;
 };
 
 #endif

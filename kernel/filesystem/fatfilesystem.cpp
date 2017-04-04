@@ -16,7 +16,7 @@
 KPRINT_BUF_INIT();
 
 FATFileSystem::FATFileSystem(uint32_t start_lba)
-:start_lba(start_lba),mFATSz(0),cluster_size(0),address_index(0)
+:start_lba(start_lba),cluster_size(0),mFATSz(0),address_index(0)
 {
     memset(&msdos_sb,0, sizeof(MSDOS_SB));
 }
@@ -76,7 +76,7 @@ void FATFileSystem::listRootContent(uint8_t *buf) {
     }
 }
 
-DIR_ENTRY* FATFileSystem::openFile(uint8_t* rootDirBuf, const char *filename, uint32_t nameLength) {
+void* FATFileSystem::openFile(uint8_t* rootDirBuf, const char *filename, uint32_t nameLength) {
 
     for (uint32_t i = 0; i < (SECTOR_SIZE / sizeof(DIR_ENTRY)); ++i) {
         DIR_ENTRY* p_dir = (DIR_ENTRY*)(rootDirBuf + i * sizeof(DIR_ENTRY));
@@ -97,7 +97,7 @@ DIR_ENTRY* FATFileSystem::openFile(uint8_t* rootDirBuf, const char *filename, ui
                     return p;
                 }
             } else { // this is a long dir entry
-                DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
+                // DIR_LONG_ENTRY *p_long_dir = (DIR_LONG_ENTRY *) p_dir;
             }
         }
     }
@@ -125,8 +125,17 @@ ADDRESS_SPACE* FATFileSystem::alloc_address_space() {
     }
 }
 
+void* FATFileSystem::createFile(const char *fileName, uint32_t nameLength) {
+
+    return nullptr;
+}
+
+int FATFileSystem::readFromFile(uint8_t *buf, uint32_t bufLength, FileDescriptor *fileDescriptor) {
+
+    return 0;
+}
+
 ADDRESS_SPACE* FATFileSystem::bread_sector(uint32_t sector) {
-    int create;
     ADDRESS_SPACE* addr = nullptr;
 
 

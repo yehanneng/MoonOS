@@ -98,8 +98,12 @@ void FileSystemTask::run() {
                 uint32_t nameLen = _msg.NAME_LEN;
                 PHYS_COPY(FS_DEST, pathname, _msg.source, _msg.PATHNAME, nameLen);
 
-
                 int src = _msg.source;
+                int fdIndex = -1;
+                if (this->check_fileDesc_cache(pathname, strlen(pathname), &fdIndex)) { // find file cache in memory
+
+                }
+
                 uint8_t _buf[SECTOR_SIZE];
                 uint32_t ret = read_disk_by_message(_buf, mFileSystem->getFirstDataSector(), 1);
                 if (ret == 0)
@@ -283,6 +287,22 @@ uint32_t FileSystemTask::do_file_open(int caller,uint8_t* rootDirBuf,const char 
     }
 
     return -1;
+}
+
+
+bool FileSystemTask::check_fileDesc_cache(const char *pathName, uint32_t nameLength, int* fdIndex) {
+
+    for(int i = 0; i < FILE_DESC_BUFFER_SIZE; i++) {
+        FileDescriptor* fP = &mFileDescriptors[i];
+        if (fP->available) {
+            bool ret = mFileSystem->fileNameMatch(fP, pathName, nameLength);
+            if (ret) {
+                *fdIndex = i;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 #ifdef __cplusplus

@@ -28,6 +28,7 @@ public:
     virtual int getFileSize(FileDescriptor* fileDescriptor) = 0;
     virtual void* createFile(const char* fileName, uint32_t nameLength) = 0;
     virtual int readFromFile(uint8_t* buf, uint32_t bufLength, FileDescriptor* fileDescriptor) = 0;
+    virtual bool fileNameMatch(FileDescriptor* fileDescriptor, const char* fileName, uint32_t nameLength) = 0;
 };
 
 #endif

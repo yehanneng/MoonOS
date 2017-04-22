@@ -30,6 +30,7 @@ public:
     int getFileSize(FileDescriptor* p_descripor) override ;
     void* createFile(const char* fileName, uint32_t nameLength) override ;
     int readFromFile(uint8_t* buf, uint32_t bufLength, FileDescriptor* fileDescriptor) override ;
+    bool fileNameMatch(FileDescriptor* fileDescriptor, const char* fileName, uint32_t nameLength) override ;
 private:
     ADDRESS_SPACE* alloc_address_space();
     ADDRESS_SPACE* bread_sector(uint32_t sector);

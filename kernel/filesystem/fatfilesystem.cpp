@@ -141,3 +141,16 @@ ADDRESS_SPACE* FATFileSystem::bread_sector(uint32_t sector) {
 
     return addr;
 }
+
+bool FATFileSystem::fileNameMatch(FileDescriptor *fileDescriptor, const char *fileName, uint32_t nameLength) {
+    if (nameLength > 8) {
+        return false;
+    }
+    if (fileDescriptor->available) {
+        DIR_ENTRY* p_dir_engry = (DIR_ENTRY *) fileDescriptor->data;
+        if(strcmp(fileName, p_dir_engry->name) == 0) {
+            return true;
+        }
+    }
+    return false;
+}

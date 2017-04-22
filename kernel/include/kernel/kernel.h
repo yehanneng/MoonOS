@@ -18,6 +18,10 @@ extern "C" {
 #define KPRINTF(format, args...) \
     memset(KPRINT_BUF, 0 ,KPRINT_BUF_SIZE);sprintf(KPRINT_BUF, format, ##args);terminal_write(KPRINT_BUF, strlen(KPRINT_BUF))
 
+
+#define KERNEL_BASE 0x10000
+#define KERNEL_SIZE 0x10000
+
 /************* asm function*****************/
 void restart();
 

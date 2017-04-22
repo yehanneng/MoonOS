@@ -67,7 +67,7 @@ void InputTask::in_process(uint32_t key)
         char output[2];
         output[1] = 0;
         output[0] = key;
-        printf("%s", output);
+        terminal_write(output, 1);
     } else {    // special key
 
     }

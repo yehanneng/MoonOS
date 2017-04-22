@@ -78,6 +78,7 @@ private:
     PartitionInfo* parse_partition_info_by_index(uint8_t* buf, uint32_t index, PartitionInfo* parent);
     uint32_t read_disk_by_message(uint8_t* buf, uint32_t start_sec, uint32_t secs_to_read);
     uint32_t do_file_open(int caller, uint8_t* rootDirBuf, const char* pathName, uint32_t nameLength);
+    bool check_fileDesc_cache(const char* pathName, uint32_t nameLength, int* fdIndex);
 private:
     uint32_t empty_index;
     PartitionInfo _partition_infos[MAX_PARTITIONS];

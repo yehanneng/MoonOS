@@ -1,7 +1,7 @@
 # this is required
 SET(CMAKE_SYSTEM_NAME Generic)
 
-set(TOOL_CHAIN_ROOT "/Workspace/LLVMHOME/install/bin")
+set(TOOL_CHAIN_ROOT "/Users/tangruiwen/opt/cross/bin")
 
 # specify the cross compiler
 if(WIN32)

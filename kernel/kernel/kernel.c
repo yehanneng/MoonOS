@@ -31,7 +31,7 @@ int k_reenter = -1;
 PROCESS* p_proc_ready = 0;
 PROCESS* focus_proc = NULL;
 
-PROCESS proc_table[NR_TASKS];
+PROCESS proc_table[NR_TASKS + NR_PROCS];
 
 /* private function */
 static int  msg_send(PROCESS* current, int dest, MESSAGE* m);
@@ -571,14 +571,15 @@ void TestB()
 {
     int times = 0;
     int tick = get_ticket();
-    // printf("get ticks = %d\n", tick);
-    char fileName[] = "README  ";
-    FILE* fileObj = fopen(fileName, "r");
-    if (fileObj != NULL) {
-        printf("file at %x\n", fileObj);
+    printf("get ticks = %d\n", tick);
+    FILE* file = fopen("README  ", "r");
+    if (file != NULL) {
+        printf("get file at %x\n", file);
         uint8_t buf[20] = {0};
-        size_t ret = fread(buf, 20, 1, fileObj);
-        printf("buf ugetc = %s | ret = %d\n", buf, ret);
+        size_t ret = fread(buf, 20, 1, file);
+        printf("buf ugetc = %s| ret = %d\n", buf, ret);
+    } else {
+        printf("file is null\n");
     }
     while(1){
         if(times < 100){
@@ -593,16 +594,28 @@ void kernel_init_internal_process()
     uint16_t ldt_selector = SELECTOR_LDT_FIRST;
     PROCESS* p;
 
-    for (int i = 0; i < NR_TASKS; ++i) {
+    for (int i = 0; i < NR_TASKS + NR_PROCS; ++i) {
         p = proc_table + i;
         memset(p, 0, sizeof(PROCESS));
+        if (i >= NR_TASKS) {
+            p->p_flags = FREE_SLOT;
+            continue;
+        }
         p->ldt_sel = ldt_selector;
         // code segment
-        memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
-        p->ldts[0].attr1 = DA_C | (PRIVILEGE_TASK << 5);
+        if (strcmp(p->p_name, "INIT") != 0) {
+            memcpy(&p->ldts[0], &kgdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
+            p->ldts[0].attr1 = DA_C | (PRIVILEGE_TASK << 5);
 
-        memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
-        p->ldts[1].attr1 = DA_DRW | (PRIVILEGE_TASK << 5);
+            memcpy(&p->ldts[1], &kgdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
+            p->ldts[1].attr1 = DA_DRW | (PRIVILEGE_TASK << 5);
+        } else { // init process
+            init_desc(&p->ldts[INDEX_LDT_C], KERNEL_BASE, KERNEL_SIZE >> LIMIT_4K_SHIFT,
+                    DA_C | DA_LIMIT_4K | DA_32 | PRIVILEGE_TASK << 5);
+
+            init_desc(&p->ldts[INDEX_LDT_RW], KERNEL_BASE, KERNEL_SIZE >> LIMIT_4K_SHIFT,
+                      DA_32 | DA_LIMIT_4K | DA_DRW | PRIVILEGE_TASK << 5);
+        }
 
         p->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
         p->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
